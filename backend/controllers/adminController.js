@@ -376,7 +376,7 @@ async function getAllChallengesAdmin(req, res) {
             FROM challenges c
             LEFT JOIN categories cat ON c.category_id = cat.id
             LEFT JOIN users u ON c.creator_id = u.id
-            LEFT JOIN participants p ON c.id = p.challenge_id
+            LEFT JOIN participants p ON c.id = p.challenge_id AND p.status = 'aktif'
             LEFT JOIN submissions s ON c.id = s.challenge_id
         `;
 

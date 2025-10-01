@@ -69,8 +69,8 @@ async function getChallengeById(req, res) {
         let isParticipant = false;
         if (req.user) {
             const [participation] = await pool.query(
-                'SELECT id FROM participants WHERE challenge_id = ? AND user_id = ?',
-                [id, req.user.id]
+                'SELECT id FROM participants WHERE challenge_id = ? AND user_id = ? AND status = ?',
+                [id, req.user.id, 'aktif']
             );
             isParticipant = participation.length > 0;
         }
