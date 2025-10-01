@@ -734,7 +734,33 @@ body {
     /* Home page 2-column layout (categories + challenges) */
     .content-section [style*="grid-template-columns: 300px 1fr"] {
         grid-template-columns: 1fr !important;
-        gap: 2rem;
+        gap: 1.5rem;
+    }
+
+    /* Categories horizontal scroll on mobile */
+    #categoriesGrid {
+        flex-direction: row !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        gap: 0.75rem !important;
+        padding-bottom: 0.5rem;
+    }
+
+    #categoriesGrid::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    #categoriesGrid::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+    }
+
+    #categoriesGrid .category-card {
+        flex: 0 0 auto;
+        min-width: 140px;
+        scroll-snap-align: start;
     }
 
     .section-header {
