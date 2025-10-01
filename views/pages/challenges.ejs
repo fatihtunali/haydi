@@ -1,0 +1,32 @@
+<%- include('../partials/header', { title, activePage }) %>
+
+    <!-- Filters -->
+    <section style="background: var(--card-bg); padding: 2rem 0; border-bottom: 1px solid var(--border);">
+        <div class="container">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <select id="categoryFilter" class="form-input" style="width: auto;">
+                    <option value="">Tüm Kategoriler</option>
+                </select>
+
+                <select id="difficultyFilter" class="form-input" style="width: auto;">
+                    <option value="">Tüm Zorluklar</option>
+                    <option value="kolay">Kolay</option>
+                    <option value="orta">Orta</option>
+                    <option value="zor">Zor</option>
+                </select>
+
+                <button onclick="applyFilters()" class="btn btn-primary btn-small">Filtrele</button>
+                <button onclick="resetFilters()" class="btn btn-secondary btn-small">Temizle</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Challenges List -->
+    <section style="padding: 3rem 0;">
+        <div class="container">
+            <h2 class="section-title">Tüm Meydan Okumalar</h2>
+            <div class="challenges-grid" id="challengesList"></div>
+        </div>
+    </section>
+
+<%- include('../partials/footer', { customScripts: ['/js/main.js', '/js/challenges.js'] }) %>

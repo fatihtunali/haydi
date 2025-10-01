@@ -1,0 +1,58 @@
+    <!-- Footer -->
+    <footer class="footer" style="background: #2C3E50; color: white; padding: 40px 0; margin-top: 60px;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 30px;">
+                <!-- Logo & About -->
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <img src="/assets/images/logo-icon.svg" alt="Haydi Hep Beraber" style="height: 35px; filter: brightness(0) invert(1);">
+                        <span style="font-weight: bold; font-size: 18px;">Haydi Hep Beraber</span>
+                    </div>
+                    <p style="color: #bdc3c7; line-height: 1.6;">
+                        Birlikte daha güçlüyüz! Meydan okumalara katıl, takım kur, yarış ve ödüller kazan.
+                    </p>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 style="margin-bottom: 15px; color: #ecf0f1;">Hızlı Linkler</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;"><a href="/" style="color: #bdc3c7; text-decoration: none;">Ana Sayfa</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/challenges" style="color: #bdc3c7; text-decoration: none;">Meydan Okumalar</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/login" style="color: #bdc3c7; text-decoration: none;">Giriş Yap</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/register" style="color: #bdc3c7; text-decoration: none;">Kayıt Ol</a></li>
+                    </ul>
+                </div>
+
+                <!-- Categories -->
+                <div>
+                    <h4 style="margin-bottom: 15px; color: #ecf0f1;">Kategoriler</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;"><a href="/challenges?category=fitness" style="color: #bdc3c7; text-decoration: none;">💪 Fitness</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/challenges?category=fotograf" style="color: #bdc3c7; text-decoration: none;">📸 Fotoğrafçılık</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/challenges?category=yazilim" style="color: #bdc3c7; text-decoration: none;">💻 Yazılım</a></li>
+                        <li style="margin-bottom: 10px;"><a href="/challenges?category=sanat" style="color: #bdc3c7; text-decoration: none;">🎨 Sanat</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div style="border-top: 1px solid #34495e; padding-top: 20px; text-align: center; color: #95a5a6;">
+                <p>&copy; <%= new Date().getFullYear() %> Haydi Hep Beraber. Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/utils.js"></script>
+    <script src="/js/api.js"></script>
+    <% if (typeof customScripts !== 'undefined' && Array.isArray(customScripts)) { %>
+        <% customScripts.forEach(script => { %>
+            <script src="<%= script %>"></script>
+        <% }) %>
+    <% } %>
+
+    <!-- Auth Handler -->
+    <script src="/js/auth.js"></script>
+</body>
+</html>

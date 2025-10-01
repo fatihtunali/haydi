@@ -1,0 +1,15 @@
+<%- include('../partials/header', { title, activePage }) %>
+
+    <!-- Profile Section -->
+    <section style="padding: 3rem 0;">
+        <div class="container">
+            <div id="profileContent">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Profil yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<%- include('../partials/footer', { customScripts: ['/js/profile.js'] }) %>

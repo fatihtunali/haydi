@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Haydi Hep Beraber</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body<% if (typeof challengeId !== 'undefined') { %> data-challenge-id="<%= challengeId %>"<% } %>>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content" style="justify-content: flex-start;">
+                <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none; cursor: pointer;">
+                    <img src="/assets/images/logo-icon.svg" alt="Haydi Hep Beraber" style="height: 40px;">
+                    <span style="color: #2C3E50; font-weight: bold;">Haydi Hep Beraber</span>
+                </a>
+                <nav class="nav" id="mainNav" style="margin-left: 3rem; flex: 1;">
+                    <a href="/" class="nav-link <%= activePage === 'home' ? 'active' : '' %>">Ana Sayfa</a>
+                    <a href="/challenges" class="nav-link <%= activePage === 'challenges' ? 'active' : '' %>">Meydan Okumalar</a>
+                    <div id="authButtons" style="margin-left: auto; display: flex; gap: 1rem; align-items: center;"></div>
+                </nav>
+            </div>
+        </div>
+    </header>
