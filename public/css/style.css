@@ -558,28 +558,277 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .hero-title {
-        font-size: 2rem;
+    /* Container padding for mobile */
+    .container {
+        padding: 0 15px;
     }
 
-    .hero-subtitle {
-        font-size: 1rem;
+    /* Header mobile responsive */
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0.75rem 0;
     }
 
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .logo {
+        font-size: 1.25rem !important;
     }
 
-    .challenges-grid {
-        grid-template-columns: 1fr;
+    .logo span {
+        font-size: 1.25rem !important;
+    }
+
+    .logo img {
+        height: 32px !important;
     }
 
     .nav {
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        margin-left: 0 !important;
+    }
+
+    .nav-link {
+        font-size: 0.9rem;
+    }
+
+    #authButtons {
+        flex-direction: column;
+        width: 100%;
+        margin-left: 0 !important;
+    }
+
+    #authButtons .btn {
+        width: 100%;
+        text-align: center;
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Hero section */
+    .hero-title {
+        font-size: 1.75rem !important;
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        font-size: 0.95rem;
+    }
+
+    /* Stats grid */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
 
+    .stat-card {
+        padding: 1.25rem !important;
+    }
+
+    .stat-card h3 {
+        font-size: 1.5rem !important;
+    }
+
+    /* Challenges grid */
+    .challenges-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Challenge cards */
+    .challenge-card {
+        padding: 1.25rem !important;
+    }
+
+    .challenge-card h3 {
+        font-size: 1.1rem !important;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.6rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-small {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Forms */
     .form-container {
-        margin: 2rem auto;
-        padding: 2rem;
+        margin: 1rem auto;
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 16px !important; /* Prevents iOS zoom on input focus */
+    }
+
+    /* Tables - make scrollable */
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        font-size: 0.85rem;
+    }
+
+    table th,
+    table td {
+        padding: 0.75rem !important;
+        white-space: nowrap;
+    }
+
+    /* Admin panel mobile */
+    .empty-state {
+        padding: 2rem 1rem;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+    }
+
+    /* Filters */
+    .filters {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .filters select,
+    .filters input {
+        width: 100%;
+        font-size: 16px !important;
+    }
+
+    /* Modal adjustments */
+    .modal {
+        padding: 1rem !important;
+    }
+
+    .modal > div {
+        max-width: 100% !important;
+        margin: 0;
+    }
+
+    /* Hide overflow text */
+    .text-overflow-ellipsis {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Challenge detail page 2-column layout */
+    #challengeDetail > div {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem;
+    }
+
+    #challengeDetail > div > div:last-child {
+        position: static !important;
+    }
+
+    /* Sticky header spacing */
+    body {
+        padding-top: 0;
+    }
+
+    /* Card padding adjustments */
+    .card,
+    [style*="padding: 2rem"],
+    [style*="padding: 2.5rem"] {
+        padding: 1.25rem !important;
+    }
+
+    /* Grid adjustments for admin */
+    [style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    [style*="display: grid"][style*="gap: 1.5rem"] {
+        gap: 1rem !important;
+    }
+
+    /* Image and video responsiveness */
+    img,
+    video {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Toast notifications */
+    .toast {
+        left: 1rem !important;
+        right: 1rem !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    /* Profile sections */
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    /* Share buttons stacking */
+    [style*="display: grid"][style*="grid-template-columns"] button {
+        font-size: 0.9rem;
+    }
+}
+
+/* iPhone Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* Fix for sticky header on iOS */
+    .header {
+        position: -webkit-sticky;
+        position: sticky;
+    }
+
+    /* Prevent iOS input zoom */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+
+    /* Fix for iOS safe area (notch) */
+    body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .header {
+        padding-top: env(safe-area-inset-top);
+    }
+}
+
+/* Small phones (< 480px) */
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 1.5rem !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .container {
+        padding: 0 10px;
+    }
+
+    /* Single column for everything */
+    [style*="display: flex"][style*="gap"] {
+        flex-wrap: wrap;
     }
 }
