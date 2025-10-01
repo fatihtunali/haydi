@@ -195,10 +195,95 @@ function renderChallengeDetail() {
             </div>
 
             <!-- Share Section -->
-            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); padding: 1.5rem; border-radius: 16px; margin-top: 1.5rem; text-align: center;">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
-                <div style="font-size: 0.9rem; color: var(--text); font-weight: 600; margin-bottom: 0.5rem;">Bu meydan okumayı paylaş!</div>
-                <div style="font-size: 0.85rem; color: var(--text-light);">Arkadaşlarını da davet et</div>
+            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); padding: 1.5rem; border-radius: 16px; margin-top: 1.5rem;">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                    <div style="font-size: 0.9rem; color: var(--text); font-weight: 600; margin-bottom: 0.25rem;">Arkadaşlarını Davet Et</div>
+                    <div style="font-size: 0.85rem; color: var(--text-light);">Bu meydan okumayı paylaş</div>
+                </div>
+
+                <!-- Share Buttons -->
+                <div style="display: grid; gap: 0.75rem;">
+                    <!-- Copy Link -->
+                    <button onclick="copyShareLink()" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        padding: 0.75rem 1rem;
+                        background: white;
+                        border: 2px solid var(--border);
+                        border-radius: 10px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        width: 100%;
+                        font-weight: 600;
+                        color: var(--text);
+                    " onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateX(5px)';"
+                       onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateX(0)';">
+                        <span style="font-size: 1.25rem;">📋</span>
+                        <span>Linki Kopyala</span>
+                    </button>
+
+                    <!-- WhatsApp -->
+                    <button onclick="shareWhatsApp()" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        padding: 0.75rem 1rem;
+                        background: #25D366;
+                        border: none;
+                        border-radius: 10px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        width: 100%;
+                        font-weight: 600;
+                        color: white;
+                    " onmouseover="this.style.transform='translateX(5px)'; this.style.opacity='0.9';"
+                       onmouseout="this.style.transform='translateX(0)'; this.style.opacity='1';">
+                        <span style="font-size: 1.25rem;">💬</span>
+                        <span>WhatsApp</span>
+                    </button>
+
+                    <!-- Twitter -->
+                    <button onclick="shareTwitter()" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        padding: 0.75rem 1rem;
+                        background: #1DA1F2;
+                        border: none;
+                        border-radius: 10px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        width: 100%;
+                        font-weight: 600;
+                        color: white;
+                    " onmouseover="this.style.transform='translateX(5px)'; this.style.opacity='0.9';"
+                       onmouseout="this.style.transform='translateX(0)'; this.style.opacity='1';">
+                        <span style="font-size: 1.25rem;">🐦</span>
+                        <span>Twitter</span>
+                    </button>
+
+                    <!-- Facebook -->
+                    <button onclick="shareFacebook()" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        padding: 0.75rem 1rem;
+                        background: #4267B2;
+                        border: none;
+                        border-radius: 10px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        width: 100%;
+                        font-weight: 600;
+                        color: white;
+                    " onmouseover="this.style.transform='translateX(5px)'; this.style.opacity='0.9';"
+                       onmouseout="this.style.transform='translateX(0)'; this.style.opacity='1';">
+                        <span style="font-size: 1.25rem;">📘</span>
+                        <span>Facebook</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -302,4 +387,70 @@ async function joinChallenge() {
     } catch (error) {
         showError(error.message);
     }
+}
+
+// Paylaşım Fonksiyonları
+
+// Linki kopyala
+function copyShareLink() {
+    const url = window.location.href;
+
+    // Clipboard API kullan
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+            showSuccess('Link kopyalandı! Artık arkadaşlarınla paylaşabilirsin 🎉');
+        }).catch(() => {
+            fallbackCopyTextToClipboard(url);
+        });
+    } else {
+        // Fallback yöntemi
+        fallbackCopyTextToClipboard(url);
+    }
+}
+
+// Fallback clipboard yöntemi
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        document.execCommand('copy');
+        showSuccess('Link kopyalandı! 📋');
+    } catch (err) {
+        showError('Link kopyalanamadı. Manuel olarak kopyalayın.');
+    }
+
+    document.body.removeChild(textArea);
+}
+
+// WhatsApp'ta paylaş
+function shareWhatsApp() {
+    const c = currentChallenge;
+    const url = window.location.href;
+    const text = `🎯 ${c.title}\n\n${c.description.substring(0, 100)}...\n\n🏆 ${c.points} puan kazanma fırsatı!\n👥 ${c.participant_count || 0} kişi katıldı\n\nSen de katıl:`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+// Twitter'da paylaş
+function shareTwitter() {
+    const c = currentChallenge;
+    const url = window.location.href;
+    const text = `🎯 ${c.title}\n\n🏆 ${c.points} puan kazanma fırsatı!\n👥 ${c.participant_count || 0} kişi katıldı\n\n#HaydiHepBeraber #MeydanOkuma`;
+
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    window.open(twitterUrl, '_blank');
+}
+
+// Facebook'ta paylaş
+function shareFacebook() {
+    const url = window.location.href;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(facebookUrl, '_blank', 'width=600,height=400');
 }
