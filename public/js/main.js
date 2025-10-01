@@ -99,7 +99,7 @@ function createChallengeCard(challenge) {
             <!-- Orta: Başlık ve Detaylar -->
             <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 0;">
                 <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #ec4899 50%, #f59e0b 75%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                         ${challenge.title}
                     </h3>
                     <span class="challenge-difficulty ${difficultyClass}" style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
