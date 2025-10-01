@@ -67,9 +67,35 @@ function createChallengeCard(challenge) {
     const difficultyClass = `difficulty-${challenge.difficulty}`;
     const participantCount = challenge.participant_count || 0;
 
+    // Tarih hesaplamaları
+    const now = new Date();
+    const startDate = new Date(challenge.start_date);
+    const endDate = new Date(challenge.end_date);
+
+    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+    const daysElapsed = Math.ceil((now - startDate) / (1000 * 60 * 60 * 24));
+    const daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+    const progressPercentage = Math.min(100, Math.max(0, (daysElapsed / totalDays) * 100));
+
+    // Durum kontrolü
+    let countdownClass = 'active';
+    let countdownText = '';
+    if (now < startDate) {
+        countdownClass = 'upcoming';
+        const daysUntilStart = Math.ceil((startDate - now) / (1000 * 60 * 60 * 24));
+        countdownText = `🕐 ${daysUntilStart} gün sonra başlıyor`;
+    } else if (now > endDate) {
+        countdownClass = 'ended';
+        countdownText = '⏱️ Sona erdi';
+    } else {
+        countdownText = `⏰ ${daysRemaining} gün kaldı`;
+    }
+
     return `
         <div class="challenge-card" onclick="goToChallenge(${challenge.id})">
-            <div class="challenge-image"></div>
+            <div class="challenge-image">
+                <div class="challenge-badge">🏆 ${challenge.points} Puan</div>
+            </div>
             <div class="challenge-content">
                 <div class="challenge-header">
                     ${challenge.category_name ? `
@@ -83,12 +109,21 @@ function createChallengeCard(challenge) {
                 </div>
                 <h3 class="challenge-title">${challenge.title}</h3>
                 <p class="challenge-description">${challenge.description}</p>
-                <div class="challenge-meta">
-                    <span class="meta-item">
+
+                <!-- Progress Bar -->
+                <div class="challenge-progress">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: ${progressPercentage}%"></div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="challenge-stats">
+                    <span class="stat-badge">
                         👥 ${participantCount} katılımcı
                     </span>
-                    <span class="meta-item">
-                        🏆 ${challenge.points} puan
+                    <span class="countdown ${countdownClass}">
+                        ${countdownText}
                     </span>
                 </div>
             </div>
