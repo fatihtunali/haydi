@@ -218,6 +218,30 @@ async function rejectSubmission(req, res) {
     }
 }
 
+async function deleteSubmission(req, res) {
+    const { id } = req.params;
+
+    try {
+        const [[submission]] = await pool.query(
+            'SELECT * FROM submissions WHERE id = ?',
+            [id]
+        );
+
+        if (!submission) {
+            return res.status(404).json({ error: 'Gönderi bulunamadı' });
+        }
+
+        // Submission'ı sil (cascade ile comments ve likes de silinecek)
+        await pool.query('DELETE FROM submissions WHERE id = ?', [id]);
+
+        res.json({ message: 'Gönderi silindi' });
+
+    } catch (error) {
+        console.error('Submission silme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 // ===== KULLANICI YÖNETİMİ =====
 
 async function getAllUsers(req, res) {
@@ -303,6 +327,35 @@ async function updateUser(req, res) {
 
     } catch (error) {
         console.error('Kullanıcı güncelleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+async function deleteUser(req, res) {
+    const { id } = req.params;
+
+    try {
+        // Admin kendini silemez
+        if (parseInt(id) === req.user.id) {
+            return res.status(400).json({ error: 'Kendi hesabınızı silemezsiniz' });
+        }
+
+        const [[user]] = await pool.query(
+            'SELECT * FROM users WHERE id = ?',
+            [id]
+        );
+
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+
+        // Kullanıcıyı sil (cascade ile ilişkili veriler de silinecek)
+        await pool.query('DELETE FROM users WHERE id = ?', [id]);
+
+        res.json({ message: 'Kullanıcı silindi' });
+
+    } catch (error) {
+        console.error('Kullanıcı silme hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası' });
     }
 }
@@ -412,8 +465,10 @@ module.exports = {
     getAllSubmissions,
     approveSubmission,
     rejectSubmission,
+    deleteSubmission,
     getAllUsers,
     updateUser,
+    deleteUser,
     getAllChallengesAdmin,
     updateChallenge,
     deleteChallenge

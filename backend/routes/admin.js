@@ -5,8 +5,10 @@ const {
     getAllSubmissions,
     approveSubmission,
     rejectSubmission,
+    deleteSubmission,
     getAllUsers,
     updateUser,
+    deleteUser,
     getAllChallengesAdmin,
     updateChallenge,
     deleteChallenge
@@ -23,10 +25,12 @@ router.get('/dashboard', getDashboard);
 router.get('/submissions', getAllSubmissions);
 router.post('/submissions/:id/approve', approveSubmission);
 router.post('/submissions/:id/reject', rejectSubmission);
+router.delete('/submissions/:id', deleteSubmission);
 
 // Kullanıcı yönetimi
 router.get('/users', getAllUsers);
 router.patch('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
 
 // Challenge yönetimi
 router.get('/challenges', getAllChallengesAdmin);

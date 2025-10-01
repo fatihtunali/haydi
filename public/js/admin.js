@@ -257,6 +257,9 @@ function renderSubmissions() {
                             <button onclick="rejectSubmission(${s.id})" class="btn btn-danger" style="white-space: nowrap;">
                                 ❌ Reddet
                             </button>
+                            <button onclick="deleteSubmissionAdmin(${s.id})" class="btn btn-secondary" style="white-space: nowrap;">
+                                🗑️ Sil
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -318,6 +321,30 @@ async function rejectSubmission(id) {
     }
 }
 
+// Submission sil
+async function deleteSubmissionAdmin(id) {
+    if (!confirm('Bu gönderiyi kalıcı olarak silmek istediğinizden emin misiniz?')) return;
+
+    try {
+        const response = await fetch(`/api/admin/submissions/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Silme başarısız');
+
+        showSuccess('Gönderi silindi');
+
+        await loadSubmissions();
+        renderAdminTabContent();
+
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
 // Users yükle
 async function loadUsers() {
     const response = await fetch('/api/admin/users', {
@@ -345,6 +372,7 @@ function renderUsers() {
                         <th style="text-align: center; padding: 1rem;">Puan</th>
                         <th style="text-align: center; padding: 1rem;">Gönderi</th>
                         <th style="text-align: center; padding: 1rem;">Kayıt Tarihi</th>
+                        <th style="text-align: center; padding: 1rem;">İşlem</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -368,12 +396,84 @@ function renderUsers() {
                             <td style="text-align: center; padding: 1rem; font-size: 0.85rem;">
                                 ${new Date(user.created_at).toLocaleDateString('tr-TR')}
                             </td>
+                            <td style="text-align: center; padding: 1rem;">
+                                <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                    <button onclick="editUser(${user.id}, '${user.username}', '${user.role}', ${user.points})" class="btn btn-small btn-primary">✏️ Düzenle</button>
+                                    <button onclick="deleteUserAdmin(${user.id}, '${user.username}')" class="btn btn-small btn-danger">🗑️ Sil</button>
+                                </div>
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
             </table>
         </div>
     `;
+}
+
+// Kullanıcı düzenle
+async function editUser(id, username, currentRole, currentPoints) {
+    const newRole = prompt(`${username} için yeni rol (user/admin):`, currentRole);
+    if (!newRole || (newRole !== 'user' && newRole !== 'admin')) {
+        showError('Geçerli bir rol girin (user veya admin)');
+        return;
+    }
+
+    const newPoints = prompt(`${username} için yeni puan:`, currentPoints);
+    if (newPoints === null) return;
+
+    const points = parseInt(newPoints);
+    if (isNaN(points) || points < 0) {
+        showError('Geçerli bir puan girin');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/admin/users/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ role: newRole, points })
+        });
+
+        if (!response.ok) throw new Error('Güncelleme başarısız');
+
+        showSuccess('Kullanıcı güncellendi');
+
+        await loadUsers();
+        renderAdminTabContent();
+
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// Kullanıcı sil
+async function deleteUserAdmin(id, username) {
+    if (!confirm(`${username} kullanıcısını kalıcı olarak silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz ve kullanıcının tüm verileri silinecektir.`)) return;
+
+    try {
+        const response = await fetch(`/api/admin/users/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Silme başarısız');
+        }
+
+        showSuccess('Kullanıcı silindi');
+
+        await loadUsers();
+        renderAdminTabContent();
+
+    } catch (error) {
+        showError(error.message);
+    }
 }
 
 // Challenges yükle
@@ -428,7 +528,11 @@ function renderChallenges() {
                                 ${c.submission_count}
                             </td>
                             <td style="text-align: center; padding: 1rem;">
-                                <a href="/challenge/${c.id}" class="btn btn-small btn-primary">Görüntüle</a>
+                                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                                    <a href="/challenge/${c.id}" class="btn btn-small btn-secondary">👁️ Görüntüle</a>
+                                    <button onclick="editChallenge(${c.id}, '${c.title.replace(/'/g, "\\'")}', '${c.status}', ${c.points})" class="btn btn-small btn-primary">✏️ Düzenle</button>
+                                    <button onclick="deleteChallengeAdmin(${c.id}, '${c.title.replace(/'/g, "\\'")}', ${c.participant_count})" class="btn btn-small btn-danger">🗑️ Sil</button>
+                                </div>
                             </td>
                         </tr>
                     `).join('')}
@@ -436,6 +540,75 @@ function renderChallenges() {
             </table>
         </div>
     `;
+}
+
+// Challenge düzenle
+async function editChallenge(id, title, currentStatus, currentPoints) {
+    const validStatuses = ['taslak', 'aktif', 'bitti', 'iptal'];
+    const newStatus = prompt(`${title} için yeni durum (taslak/aktif/bitti/iptal):`, currentStatus);
+
+    if (!newStatus || !validStatuses.includes(newStatus)) {
+        showError('Geçerli bir durum girin (taslak, aktif, bitti veya iptal)');
+        return;
+    }
+
+    const newPoints = prompt(`${title} için yeni puan:`, currentPoints);
+    if (newPoints === null) return;
+
+    const points = parseInt(newPoints);
+    if (isNaN(points) || points < 0) {
+        showError('Geçerli bir puan girin');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/admin/challenges/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus, points })
+        });
+
+        if (!response.ok) throw new Error('Güncelleme başarısız');
+
+        showSuccess('Meydan okuma güncellendi');
+
+        await loadChallenges();
+        renderAdminTabContent();
+
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// Challenge sil
+async function deleteChallengeAdmin(id, title, participantCount) {
+    if (participantCount > 0) {
+        if (!confirm(`⚠️ UYARI: "${title}" meydan okumasında ${participantCount} katılımcı var!\n\nBu meydan okumayı silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz ve tüm katılımcı verileri silinecektir.`)) return;
+    } else {
+        if (!confirm(`"${title}" meydan okumasını kalıcı olarak silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz.`)) return;
+    }
+
+    try {
+        const response = await fetch(`/api/admin/challenges/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Silme başarısız');
+
+        showSuccess('Meydan okuma silindi');
+
+        await loadChallenges();
+        renderAdminTabContent();
+
+    } catch (error) {
+        showError(error.message);
+    }
 }
 
 // Sayfa yüklendiğinde
