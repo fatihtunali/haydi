@@ -85,6 +85,10 @@ const ChallengeAPI = {
 
     getCategories: async () => {
         return apiRequest('/challenges/categories');
+    },
+
+    getStats: async () => {
+        return apiRequest('/challenges/stats');
     }
 };
 

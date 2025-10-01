@@ -5,13 +5,15 @@ const {
     getChallengeById,
     createChallenge,
     joinChallenge,
-    getCategories
+    getCategories,
+    getStats
 } = require('../controllers/challengeController');
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
 
 // Public/optional auth routes
 router.get('/', optionalAuth, getAllChallenges);
 router.get('/categories', getCategories);
+router.get('/stats', getStats);
 router.get('/:id', optionalAuth, getChallengeById);
 
 // Protected routes

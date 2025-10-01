@@ -208,10 +208,29 @@ async function getCategories(req, res) {
     }
 }
 
+// Genel istatistikleri getir
+async function getStats(req, res) {
+    try {
+        const [[stats]] = await pool.query(`
+            SELECT
+                (SELECT COUNT(*) FROM users) as total_users,
+                (SELECT COUNT(*) FROM challenges WHERE status = 'aktif') as active_challenges,
+                (SELECT COUNT(*) FROM submissions) as total_submissions,
+                (SELECT COALESCE(SUM(points), 0) FROM users) as total_points_distributed
+        `);
+
+        res.json({ stats });
+    } catch (error) {
+        console.error('İstatistik yükleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 module.exports = {
     getAllChallenges,
     getChallengeById,
     createChallenge,
     joinChallenge,
-    getCategories
+    getCategories,
+    getStats
 };

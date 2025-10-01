@@ -144,12 +144,34 @@ function goToChallenge(id) {
 
 // İstatistikleri yükle
 async function loadStats() {
-    const activeChallengesEl = document.getElementById('activeChallenges');
-    if (!activeChallengesEl) return;
-
     try {
-        const data = await ChallengeAPI.getAll({ status: 'aktif', limit: 100 });
-        activeChallengesEl.textContent = data.challenges.length;
+        const data = await ChallengeAPI.getStats();
+        const stats = data.stats;
+
+        // Aktif meydan okumalar
+        const activeChallengesEl = document.getElementById('activeChallenges');
+        if (activeChallengesEl) {
+            activeChallengesEl.textContent = stats.active_challenges;
+        }
+
+        // Toplam kullanıcılar
+        const totalUsersEl = document.getElementById('totalUsers');
+        if (totalUsersEl) {
+            totalUsersEl.textContent = stats.total_users + '+';
+        }
+
+        // Toplam gönderiler
+        const totalSubmissionsEl = document.getElementById('totalSubmissions');
+        if (totalSubmissionsEl) {
+            totalSubmissionsEl.textContent = stats.total_submissions + '+';
+        }
+
+        // Toplam dağıtılan puanlar
+        const totalPointsEl = document.getElementById('totalPoints');
+        if (totalPointsEl) {
+            totalPointsEl.textContent = stats.total_points_distributed + '+';
+        }
+
     } catch (error) {
         console.error('İstatistik yükleme hatası:', error);
     }
