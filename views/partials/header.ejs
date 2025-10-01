@@ -4,6 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - Haydi Hep Beraber</title>
+
+    <% if (typeof challenge !== 'undefined' && challenge) { %>
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="<%= challenge.title %> - Haydi Hep Beraber">
+    <meta property="og:description" content="<%= challenge.description.substring(0, 200) %>...">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://haydihepberaber.com/challenge/<%= challenge.id %>">
+    <meta property="og:site_name" content="Haydi Hep Beraber">
+    <meta property="og:locale" content="tr_TR">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= challenge.title %>">
+    <meta name="twitter:description" content="<%= challenge.description.substring(0, 200) %>...">
+
+    <!-- Additional Meta Tags -->
+    <meta name="description" content="<%= challenge.description.substring(0, 160) %>...">
+    <meta name="keywords" content="<%= challenge.category_name %>, meydan okuma, <%= challenge.difficulty %>, haydi hep beraber">
+    <% } else { %>
+    <!-- Default Meta Tags -->
+    <meta name="description" content="Haydi Hep Beraber - Sosyal meydan okuma platformu. Fitness, fotoğrafçılık, kodlama ve daha fazla kategoride meydan okumalara katıl!">
+    <meta property="og:title" content="<%= title %> - Haydi Hep Beraber">
+    <meta property="og:description" content="Sosyal meydan okuma platformu. Fitness, fotoğrafçılık, kodlama ve daha fazla kategoride meydan okumalara katıl!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://haydihepberaber.com">
+    <meta property="og:site_name" content="Haydi Hep Beraber">
+    <% } %>
+
     <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
 </head>

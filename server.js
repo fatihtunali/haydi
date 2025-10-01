@@ -25,31 +25,65 @@ app.use(express.urlencoded({ extended: true }));
 
 // View Routes (EJS) - ÖNCE routes tanımla
 app.get('/', (req, res) => {
-    res.render('pages/index', { title: 'Ana Sayfa', activePage: 'home' });
+    res.render('pages/index', { title: 'Ana Sayfa', activePage: 'home', challenge: null });
 });
 
 app.get('/challenges', (req, res) => {
-    res.render('pages/challenges', { title: 'Meydan Okumalar', activePage: 'challenges' });
+    res.render('pages/challenges', { title: 'Meydan Okumalar', activePage: 'challenges', challenge: null });
 });
 
-app.get('/challenge/:id', (req, res) => {
-    res.render('pages/challenge', { title: 'Meydan Okuma Detay', activePage: 'challenges', challengeId: req.params.id });
+app.get('/challenge/:id', async (req, res) => {
+    try {
+        const { pool } = require('./backend/config/database');
+        const [challenges] = await pool.query(`
+            SELECT
+                c.*,
+                cat.name as category_name,
+                cat.icon as category_icon,
+                u.username as creator_username
+            FROM challenges c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            LEFT JOIN users u ON c.creator_id = u.id
+            WHERE c.id = ?
+        `, [req.params.id]);
+
+        if (challenges.length === 0) {
+            return res.status(404).render('pages/404', { title: 'Bulunamadı', activePage: '' });
+        }
+
+        const challenge = challenges[0];
+
+        res.render('pages/challenge', {
+            title: challenge.title,
+            activePage: 'challenges',
+            challengeId: req.params.id,
+            challenge: challenge
+        });
+    } catch (error) {
+        console.error('Challenge detay hatası:', error);
+        res.render('pages/challenge', {
+            title: 'Meydan Okuma Detay',
+            activePage: 'challenges',
+            challengeId: req.params.id,
+            challenge: null
+        });
+    }
 });
 
 app.get('/login', (req, res) => {
-    res.render('pages/login', { title: 'Giriş Yap', activePage: '' });
+    res.render('pages/login', { title: 'Giriş Yap', activePage: '', challenge: null });
 });
 
 app.get('/register', (req, res) => {
-    res.render('pages/register', { title: 'Kayıt Ol', activePage: '' });
+    res.render('pages/register', { title: 'Kayıt Ol', activePage: '', challenge: null });
 });
 
 app.get('/profile', (req, res) => {
-    res.render('pages/profile', { title: 'Profilim', activePage: 'profile' });
+    res.render('pages/profile', { title: 'Profilim', activePage: 'profile', challenge: null });
 });
 
 app.get('/admin', (req, res) => {
-    res.render('pages/admin', { title: 'Admin Panel', activePage: 'admin' });
+    res.render('pages/admin', { title: 'Admin Panel', activePage: 'admin', challenge: null });
 });
 
 // API Routes
