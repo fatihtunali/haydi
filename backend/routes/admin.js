@@ -10,6 +10,8 @@ const {
     updateUser,
     deleteUser,
     getAllChallengesAdmin,
+    getChallengeDetail,
+    getCategories,
     updateChallenge,
     deleteChallenge
 } = require('../controllers/adminController');
@@ -34,6 +36,8 @@ router.delete('/users/:id', deleteUser);
 
 // Challenge yönetimi
 router.get('/challenges', getAllChallengesAdmin);
+router.get('/challenges/:id', getChallengeDetail);
+router.get('/categories', getCategories);
 router.patch('/challenges/:id', updateChallenge);
 router.delete('/challenges/:id', deleteChallenge);
 

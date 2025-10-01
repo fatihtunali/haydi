@@ -4,6 +4,7 @@ let dashboardData = null;
 let submissionsData = [];
 let usersData = [];
 let challengesData = [];
+let categoriesData = [];
 
 async function loadAdminPanel() {
     const adminContent = document.getElementById('adminContent');
@@ -490,6 +491,22 @@ async function loadChallenges() {
     challengesData = data.challenges;
 }
 
+// Kategorileri yükle
+async function loadCategories() {
+    if (categoriesData.length > 0) return; // Cache
+
+    const response = await fetch('/api/admin/categories', {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
+    if (!response.ok) throw new Error('Kategoriler yüklenemedi');
+
+    const data = await response.json();
+    categoriesData = data.categories;
+}
+
 // Challenges render
 function renderChallenges() {
     return `
@@ -530,7 +547,7 @@ function renderChallenges() {
                             <td style="text-align: center; padding: 1rem;">
                                 <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
                                     <a href="/challenge/${c.id}" class="btn btn-small btn-secondary">👁️ Görüntüle</a>
-                                    <button onclick="editChallenge(${c.id}, '${c.title.replace(/'/g, "\\'")}', '${c.status}', ${c.points})" class="btn btn-small btn-primary">✏️ Düzenle</button>
+                                    <button onclick="editChallenge(${c.id})" class="btn btn-small btn-primary">✏️ Düzenle</button>
                                     <button onclick="deleteChallengeAdmin(${c.id}, '${c.title.replace(/'/g, "\\'")}', ${c.participant_count})" class="btn btn-small btn-danger">🗑️ Sil</button>
                                 </div>
                             </td>
@@ -542,44 +559,224 @@ function renderChallenges() {
     `;
 }
 
-// Challenge düzenle
-async function editChallenge(id, title, currentStatus, currentPoints) {
-    const validStatuses = ['taslak', 'aktif', 'bitti', 'iptal'];
-    const newStatus = prompt(`${title} için yeni durum (taslak/aktif/bitti/iptal):`, currentStatus);
-
-    if (!newStatus || !validStatuses.includes(newStatus)) {
-        showError('Geçerli bir durum girin (taslak, aktif, bitti veya iptal)');
-        return;
-    }
-
-    const newPoints = prompt(`${title} için yeni puan:`, currentPoints);
-    if (newPoints === null) return;
-
-    const points = parseInt(newPoints);
-    if (isNaN(points) || points < 0) {
-        showError('Geçerli bir puan girin');
-        return;
-    }
-
+// Challenge düzenle - Modal aç
+async function editChallenge(id) {
     try {
+        // Kategorileri yükle
+        await loadCategories();
+
+        // Challenge detaylarını yükle
+        const response = await fetch(`/api/admin/challenges/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Challenge detayları yüklenemedi');
+
+        const data = await response.json();
+        const challenge = data.challenge;
+
+        // Modal oluştur
+        showEditChallengeModal(challenge);
+
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// Challenge düzenleme modalını göster
+function showEditChallengeModal(challenge) {
+    // Tarih formatı düzelt (datetime-local için)
+    const formatDateForInput = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toISOString().slice(0, 16);
+    };
+
+    const modalHTML = `
+        <div id="editChallengeModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+            <div style="background: var(--card-bg); border-radius: 12px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div style="padding: 2rem; border-bottom: 2px solid var(--border);">
+                    <h2 style="margin: 0; font-size: 1.5rem;">✏️ Meydan Okuma Düzenle</h2>
+                </div>
+
+                <form id="editChallengeForm" style="padding: 2rem;">
+                    <div style="display: grid; gap: 1.5rem;">
+                        <!-- Başlık -->
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Başlık *</label>
+                            <input type="text" id="edit_title" value="${challenge.title || ''}" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                        </div>
+
+                        <!-- Açıklama -->
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Açıklama *</label>
+                            <textarea id="edit_description" rows="4" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; resize: vertical;">${challenge.description || ''}</textarea>
+                        </div>
+
+                        <!-- Kurallar -->
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Kurallar</label>
+                            <textarea id="edit_rules" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; resize: vertical;">${challenge.rules || ''}</textarea>
+                            <small style="color: var(--text-light);">Her kural yeni satıra yazılabilir</small>
+                        </div>
+
+                        <!-- İki kolon -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <!-- Kategori -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Kategori *</label>
+                                <select id="edit_category_id" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                                    <option value="">Seçiniz</option>
+                                    ${categoriesData.map(cat => `
+                                        <option value="${cat.id}" ${challenge.category_id === cat.id ? 'selected' : ''}>
+                                            ${cat.icon} ${cat.name}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+
+                            <!-- Zorluk -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Zorluk *</label>
+                                <select id="edit_difficulty" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                                    <option value="kolay" ${challenge.difficulty === 'kolay' ? 'selected' : ''}>Kolay</option>
+                                    <option value="orta" ${challenge.difficulty === 'orta' ? 'selected' : ''}>Orta</option>
+                                    <option value="zor" ${challenge.difficulty === 'zor' ? 'selected' : ''}>Zor</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- İki kolon -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <!-- Puan -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Puan *</label>
+                                <input type="number" id="edit_points" value="${challenge.points || 0}" min="0" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                            </div>
+
+                            <!-- Durum -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Durum *</label>
+                                <select id="edit_status" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                                    <option value="taslak" ${challenge.status === 'taslak' ? 'selected' : ''}>Taslak</option>
+                                    <option value="aktif" ${challenge.status === 'aktif' ? 'selected' : ''}>Aktif</option>
+                                    <option value="bitti" ${challenge.status === 'bitti' ? 'selected' : ''}>Bitti</option>
+                                    <option value="iptal" ${challenge.status === 'iptal' ? 'selected' : ''}>İptal</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Tarihler -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <!-- Başlangıç Tarihi -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Başlangıç Tarihi</label>
+                                <input type="datetime-local" id="edit_start_date" value="${formatDateForInput(challenge.start_date)}" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                            </div>
+
+                            <!-- Bitiş Tarihi -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Bitiş Tarihi</label>
+                                <input type="datetime-local" id="edit_end_date" value="${formatDateForInput(challenge.end_date)}" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                            </div>
+                        </div>
+
+                        <!-- Max katılımcı ve takım -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <!-- Max Katılımcı -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Maksimum Katılımcı</label>
+                                <input type="number" id="edit_max_participants" value="${challenge.max_participants || ''}" min="0" placeholder="Sınırsız için boş bırakın" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                            </div>
+
+                            <!-- Takım Gerektirir -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Takım Gerektirir</label>
+                                <select id="edit_requires_team" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                                    <option value="0" ${!challenge.requires_team ? 'selected' : ''}>Hayır</option>
+                                    <option value="1" ${challenge.requires_team ? 'selected' : ''}>Evet</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Butonlar -->
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                        <button type="button" onclick="closeEditChallengeModal()" class="btn btn-secondary">İptal</button>
+                        <button type="submit" class="btn btn-primary">💾 Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    // Modal'ı ekle
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Form submit handler
+    document.getElementById('editChallengeForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveChallengeChanges(challenge.id);
+    });
+
+    // ESC tuşu ile kapat
+    document.addEventListener('keydown', handleEscapeKey);
+}
+
+// Challenge değişikliklerini kaydet
+async function saveChallengeChanges(id) {
+    try {
+        const formData = {
+            title: document.getElementById('edit_title').value.trim(),
+            description: document.getElementById('edit_description').value.trim(),
+            rules: document.getElementById('edit_rules').value.trim(),
+            category_id: parseInt(document.getElementById('edit_category_id').value),
+            difficulty: document.getElementById('edit_difficulty').value,
+            points: parseInt(document.getElementById('edit_points').value),
+            status: document.getElementById('edit_status').value,
+            start_date: document.getElementById('edit_start_date').value || null,
+            end_date: document.getElementById('edit_end_date').value || null,
+            max_participants: document.getElementById('edit_max_participants').value ? parseInt(document.getElementById('edit_max_participants').value) : null,
+            requires_team: parseInt(document.getElementById('edit_requires_team').value)
+        };
+
         const response = await fetch(`/api/admin/challenges/${id}`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ status: newStatus, points })
+            body: JSON.stringify(formData)
         });
 
         if (!response.ok) throw new Error('Güncelleme başarısız');
 
         showSuccess('Meydan okuma güncellendi');
+        closeEditChallengeModal();
 
         await loadChallenges();
         renderAdminTabContent();
 
     } catch (error) {
         showError(error.message);
+    }
+}
+
+// Modal'ı kapat
+function closeEditChallengeModal() {
+    const modal = document.getElementById('editChallengeModal');
+    if (modal) {
+        modal.remove();
+    }
+    document.removeEventListener('keydown', handleEscapeKey);
+}
+
+// ESC tuşu handler
+function handleEscapeKey(e) {
+    if (e.key === 'Escape') {
+        closeEditChallengeModal();
     }
 }
 

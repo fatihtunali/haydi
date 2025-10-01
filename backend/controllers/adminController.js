@@ -410,22 +410,116 @@ async function getAllChallengesAdmin(req, res) {
     }
 }
 
+async function getChallengeDetail(req, res) {
+    const { id } = req.params;
+
+    try {
+        const [[challenge]] = await pool.query(`
+            SELECT c.*, cat.name as category_name
+            FROM challenges c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.id = ?
+        `, [id]);
+
+        if (!challenge) {
+            return res.status(404).json({ error: 'Challenge bulunamadı' });
+        }
+
+        res.json({ challenge });
+
+    } catch (error) {
+        console.error('Challenge detay hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+async function getCategories(req, res) {
+    try {
+        const [categories] = await pool.query(
+            'SELECT id, name, slug, icon FROM categories ORDER BY name'
+        );
+
+        res.json({ categories });
+
+    } catch (error) {
+        console.error('Kategori listeleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 async function updateChallenge(req, res) {
     const { id } = req.params;
-    const { status, points } = req.body;
+    const {
+        title,
+        description,
+        rules,
+        category_id,
+        difficulty,
+        points,
+        start_date,
+        end_date,
+        status,
+        max_participants,
+        requires_team
+    } = req.body;
 
     try {
         const updates = [];
         const params = [];
+
+        if (title) {
+            updates.push('title = ?');
+            params.push(title);
+        }
+
+        if (description) {
+            updates.push('description = ?');
+            params.push(description);
+        }
+
+        if (rules !== undefined) {
+            updates.push('rules = ?');
+            params.push(rules);
+        }
+
+        if (category_id !== undefined) {
+            updates.push('category_id = ?');
+            params.push(category_id);
+        }
+
+        if (difficulty) {
+            updates.push('difficulty = ?');
+            params.push(difficulty);
+        }
+
+        if (points !== undefined) {
+            updates.push('points = ?');
+            params.push(points);
+        }
+
+        if (start_date) {
+            updates.push('start_date = ?');
+            params.push(start_date);
+        }
+
+        if (end_date) {
+            updates.push('end_date = ?');
+            params.push(end_date);
+        }
 
         if (status) {
             updates.push('status = ?');
             params.push(status);
         }
 
-        if (points !== undefined) {
-            updates.push('points = ?');
-            params.push(points);
+        if (max_participants !== undefined) {
+            updates.push('max_participants = ?');
+            params.push(max_participants);
+        }
+
+        if (requires_team !== undefined) {
+            updates.push('requires_team = ?');
+            params.push(requires_team ? 1 : 0);
         }
 
         if (updates.length === 0) {
@@ -470,6 +564,8 @@ module.exports = {
     updateUser,
     deleteUser,
     getAllChallengesAdmin,
+    getChallengeDetail,
+    getCategories,
     updateChallenge,
     deleteChallenge
 };
