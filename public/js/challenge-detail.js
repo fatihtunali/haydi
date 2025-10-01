@@ -72,8 +72,12 @@ function renderChallengeDetail() {
 
     const detailContainer = document.getElementById('challengeDetail');
     detailContainer.innerHTML = `
-        <div style="background: var(--card-bg); padding: 2.5rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-            <!-- Header Badges -->
+        <!-- 2 Column Layout -->
+        <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem; align-items: start;">
+
+            <!-- Main Content -->
+            <div style="background: var(--card-bg); padding: 2.5rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                <!-- Header Badges -->
             <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center;">
                 ${c.category_name ? `
                     <span class="challenge-category">
@@ -140,9 +144,77 @@ function renderChallengeDetail() {
                 </div>
             ` : ''}
 
-            <!-- Join Button -->
-            <div id="joinButtonContainer"></div>
         </div>
+
+        <!-- Sidebar -->
+        <div style="position: sticky; top: 100px;">
+            <!-- Quick Stats -->
+            <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; color: var(--text);">📊 Hızlı Bilgiler</h3>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg); border-radius: 8px;">
+                        <span style="color: var(--text-light); font-size: 0.9rem;">👥 Katılımcı</span>
+                        <strong style="color: var(--primary); font-size: 1.1rem;">${c.participant_count || 0}</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg); border-radius: 8px;">
+                        <span style="color: var(--text-light); font-size: 0.9rem;">🏆 Puan</span>
+                        <strong style="color: var(--secondary); font-size: 1.1rem;">${c.points}</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg); border-radius: 8px;">
+                        <span style="color: var(--text-light); font-size: 0.9rem;">📅 Süre</span>
+                        <strong style="color: var(--text); font-size: 1.1rem;">${totalDays} gün</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg); border-radius: 8px;">
+                        <span style="color: var(--text-light); font-size: 0.9rem;">⚡ Zorluk</span>
+                        <span class="challenge-difficulty ${difficultyClass}" style="margin: 0;">
+                            ${c.difficulty.charAt(0).toUpperCase() + c.difficulty.slice(1)}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Join Button Sidebar -->
+            <div id="joinButtonContainer"></div>
+
+            <!-- Creator Info -->
+            <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-top: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--text);">👤 Oluşturan</h3>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;">
+                        ${c.creator_username.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--text);">@${c.creator_username}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-light);">Meydan Okuma Sahibi</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share Section -->
+            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); padding: 1.5rem; border-radius: 16px; margin-top: 1.5rem; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                <div style="font-size: 0.9rem; color: var(--text); font-weight: 600; margin-bottom: 0.5rem;">Bu meydan okumayı paylaş!</div>
+                <div style="font-size: 0.85rem; color: var(--text-light);">Arkadaşlarını da davet et</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Mobile Responsive CSS -->
+    <style>
+        @media (max-width: 1024px) {
+            #challengeDetail > div {
+                grid-template-columns: 1fr !important;
+            }
+            #challengeDetail > div > div:last-child {
+                position: static !important;
+            }
+        }
+    </style>
     `;
 
     renderJoinButton();
@@ -154,8 +226,21 @@ function renderJoinButton() {
 
     if (!isLoggedIn()) {
         container.innerHTML = `
-            <a href="/login" class="btn btn-primary" style="width: 100%;">
-                Meydan Okumaya Katılmak İçin Giriş Yap
+            <a href="/login" style="
+                display: block;
+                padding: 1.25rem 2rem;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+                color: white;
+                text-align: center;
+                border-radius: 12px;
+                font-size: 1.1rem;
+                font-weight: 700;
+                text-decoration: none;
+                box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+                transition: all 0.3s;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 30px rgba(99, 102, 241, 0.4)';"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(99, 102, 241, 0.3)';">
+                🔐 Meydan Okumaya Katılmak İçin Giriş Yap
             </a>
         `;
         return;
@@ -163,14 +248,36 @@ function renderJoinButton() {
 
     if (isParticipant) {
         container.innerHTML = `
-            <button class="btn btn-success" disabled style="width: 100%;">
-                ✓ Meydan Okumaya Katıldınız
-            </button>
+            <div style="
+                padding: 1.25rem 2rem;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                text-align: center;
+                border-radius: 12px;
+                font-size: 1.1rem;
+                font-weight: 700;
+                box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+            ">
+                ✓ Meydan Okumaya Katıldınız - Başarılar!
+            </div>
         `;
     } else {
         container.innerHTML = `
-            <button onclick="joinChallenge()" class="btn btn-primary" style="width: 100%;">
-                Meydan Okumaya Katıl
+            <button onclick="joinChallenge()" style="
+                width: 100%;
+                padding: 1.25rem 2rem;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 1.1rem;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+                transition: all 0.3s;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 30px rgba(99, 102, 241, 0.4)';"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(99, 102, 241, 0.3)';">
+                🚀 Meydan Okumaya Katıl
             </button>
         `;
     }
