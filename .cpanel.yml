@@ -1,7 +1,7 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/haydi/public_html/
+    - export DEPLOYPATH=/home/haydi/haydihepberaber/
     - /bin/cp -R * $DEPLOYPATH
     - /bin/cp -R .env $DEPLOYPATH
     - /bin/cp -R .htaccess $DEPLOYPATH 2>/dev/null || :
