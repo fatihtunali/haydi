@@ -731,6 +731,32 @@ body {
         position: static !important;
     }
 
+    /* Home page 2-column layout (categories + challenges) */
+    .content-section [style*="grid-template-columns: 300px 1fr"] {
+        grid-template-columns: 1fr !important;
+        gap: 2rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start !important;
+    }
+
+    .view-all {
+        font-size: 0.9rem;
+    }
+
+    /* Hero buttons */
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+    }
+
     /* Sticky header spacing */
     body {
         padding-top: 0;
