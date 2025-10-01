@@ -9,6 +9,7 @@ const { testConnection } = require('./backend/config/database');
 const authRoutes = require('./backend/routes/auth');
 const challengeRoutes = require('./backend/routes/challenges');
 const submissionRoutes = require('./backend/routes/submissions');
+const adminRoutes = require('./backend/routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,10 +48,15 @@ app.get('/profile', (req, res) => {
     res.render('pages/profile', { title: 'Profilim', activePage: 'profile' });
 });
 
+app.get('/admin', (req, res) => {
+    res.render('pages/admin', { title: 'Admin Panel', activePage: 'admin' });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/challenges', challengeRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -63,16 +69,23 @@ app.use(express.static('public'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Hata:', err.stack);
+    console.error('Hata:', err);
 
     if (err.name === 'MulterError') {
         if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).json({ error: 'Dosya çok büyük (max 5MB)' });
+            return res.status(400).json({ error: 'Dosya çok büyük (max 100MB)' });
         }
-        return res.status(400).json({ error: 'Dosya yükleme hatası' });
+        console.error('MulterError details:', err);
+        return res.status(400).json({ error: 'Dosya yükleme hatası: ' + err.message });
     }
 
-    res.status(500).json({ error: 'Sunucu hatası' });
+    // Cloudinary hatası
+    if (err.message && err.message.includes('cloudinary')) {
+        console.error('Cloudinary error:', err);
+        return res.status(400).json({ error: 'Cloudinary yükleme hatası: ' + err.message });
+    }
+
+    res.status(500).json({ error: 'Sunucu hatası: ' + (err.message || 'Bilinmeyen hata') });
 });
 
 // Sunucuyu başlat

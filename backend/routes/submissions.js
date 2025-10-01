@@ -5,14 +5,18 @@ const {
     createSubmission,
     toggleLike,
     addComment,
-    getComments
+    getComments,
+    deleteSubmission
 } = require('../controllers/submissionController');
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
 // Challenge submissions
 router.get('/challenge/:challengeId', optionalAuth, getSubmissions);
-router.post('/challenge/:challengeId', authenticateToken, upload.single('media'), createSubmission);
+router.post('/challenge/:challengeId', authenticateToken, upload.single('file'), createSubmission);
+
+// Submission management
+router.delete('/:id', authenticateToken, deleteSubmission);
 
 // Like/unlike
 router.post('/:id/like', authenticateToken, toggleLike);
