@@ -24,9 +24,9 @@ async function loadCategories() {
         }
 
         categoriesGrid.innerHTML = categories.map(cat => `
-            <a href="/challenges?category=${cat.slug}" class="category-card">
-                <div class="category-icon">${cat.icon}</div>
-                <div class="category-name">${cat.name}</div>
+            <a href="/challenges?category=${cat.slug}" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: var(--card-bg); border-radius: 12px; text-decoration: none; transition: all 0.3s; border: 2px solid transparent;">
+                <div style="font-size: 2rem; line-height: 1;">${cat.icon}</div>
+                <div style="font-weight: 600; color: var(--text); font-size: 1rem;">${cat.name}</div>
             </a>
         `).join('');
 
@@ -44,7 +44,7 @@ async function loadFeaturedChallenges() {
     showLoading(featuredChallenges);
 
     try {
-        const data = await ChallengeAPI.getAll({ status: 'aktif', limit: 6 });
+        const data = await ChallengeAPI.getAll({ status: 'aktif', limit: 8 });
         const challenges = data.challenges;
 
         if (challenges.length === 0) {

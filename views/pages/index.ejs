@@ -15,25 +15,30 @@
         </div>
     </section>
 
-    <!-- Categories Section -->
-    <section class="categories">
+    <!-- Categories + Featured Challenges Side by Side -->
+    <section class="content-section" style="padding: 4rem 0;">
         <div class="container">
-            <h2 class="section-title">Popüler Kategoriler</h2>
-            <div class="categories-grid" id="categoriesGrid">
-                <!-- Kategoriler dinamik yüklenecek -->
-            </div>
-        </div>
-    </section>
+            <div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem; align-items: start;">
 
-    <!-- Featured Challenges -->
-    <section class="featured">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Öne Çıkan Meydan Okumalar</h2>
-                <a href="/challenges" class="view-all">Tümünü Gör →</a>
-            </div>
-            <div class="challenges-grid" id="featuredChallenges">
-                <!-- Meydan Okumalar dinamik yüklenecek -->
+                <!-- Sol: Kategoriler -->
+                <div>
+                    <h2 class="section-title" style="margin-bottom: 1.5rem;">Popüler Kategoriler</h2>
+                    <div id="categoriesGrid" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Kategoriler dinamik yüklenecek -->
+                    </div>
+                </div>
+
+                <!-- Sağ: Meydan Okumalar -->
+                <div>
+                    <div class="section-header" style="margin-bottom: 1.5rem;">
+                        <h2 class="section-title">Öne Çıkan Meydan Okumalar</h2>
+                        <a href="/challenges" class="view-all">Tümünü Gör →</a>
+                    </div>
+                    <div class="challenges-grid" id="featuredChallenges" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+                        <!-- Meydan Okumalar dinamik yüklenecek -->
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
