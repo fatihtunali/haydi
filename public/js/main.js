@@ -62,7 +62,7 @@ async function loadFeaturedChallenges() {
     }
 }
 
-// Challenge kartı oluştur
+// Challenge kartı oluştur (Liste formatı)
 function createChallengeCard(challenge) {
     const difficultyClass = `difficulty-${challenge.difficulty}`;
     const participantCount = challenge.participant_count || 0;
@@ -72,10 +72,7 @@ function createChallengeCard(challenge) {
     const startDate = new Date(challenge.start_date);
     const endDate = new Date(challenge.end_date);
 
-    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-    const daysElapsed = Math.ceil((now - startDate) / (1000 * 60 * 60 * 24));
     const daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
-    const progressPercentage = Math.min(100, Math.max(0, (daysElapsed / totalDays) * 100));
 
     // Durum kontrolü
     let countdownClass = 'active';
@@ -83,50 +80,59 @@ function createChallengeCard(challenge) {
     if (now < startDate) {
         countdownClass = 'upcoming';
         const daysUntilStart = Math.ceil((startDate - now) / (1000 * 60 * 60 * 24));
-        countdownText = `🕐 ${daysUntilStart} gün sonra başlıyor`;
+        countdownText = `${daysUntilStart} gün sonra`;
     } else if (now > endDate) {
         countdownClass = 'ended';
-        countdownText = '⏱️ Sona erdi';
+        countdownText = 'Sona erdi';
     } else {
-        countdownText = `⏰ ${daysRemaining} gün kaldı`;
+        countdownText = `${daysRemaining} gün kaldı`;
     }
 
     return `
-        <div class="challenge-card" onclick="goToChallenge(${challenge.id})">
-            <div class="challenge-image">
-                <div class="challenge-badge">🏆 ${challenge.points} Puan</div>
+        <div onclick="goToChallenge(${challenge.id})" style="display: grid; grid-template-columns: auto 1fr auto; gap: 1.5rem; align-items: center; padding: 1.5rem; background: var(--card-bg); border-radius: 12px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+
+            <!-- Sol: Kategori İkonu -->
+            <div style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); border-radius: 12px; font-size: 2rem;">
+                ${challenge.category_icon || '🎯'}
             </div>
-            <div class="challenge-content">
-                <div class="challenge-header">
-                    ${challenge.category_name ? `
-                        <span class="challenge-category">
-                            ${challenge.category_icon} ${challenge.category_name}
-                        </span>
-                    ` : ''}
-                    <span class="challenge-difficulty ${difficultyClass}">
+
+            <!-- Orta: Başlık ve Detaylar -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${challenge.title}
+                    </h3>
+                    <span class="challenge-difficulty ${difficultyClass}" style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
                         ${challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
                     </span>
                 </div>
-                <h3 class="challenge-title">${challenge.title}</h3>
-                <p class="challenge-description">${challenge.description}</p>
-
-                <!-- Progress Bar -->
-                <div class="challenge-progress">
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: ${progressPercentage}%"></div>
-                    </div>
-                </div>
-
-                <!-- Stats -->
-                <div class="challenge-stats">
-                    <span class="stat-badge">
+                <p style="margin: 0; color: var(--text-light); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                    ${challenge.description}
+                </p>
+                <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 0.25rem; font-size: 0.85rem;">
+                    ${challenge.category_name ? `
+                        <span style="color: var(--text-light); display: flex; align-items: center; gap: 0.25rem;">
+                            📂 ${challenge.category_name}
+                        </span>
+                    ` : ''}
+                    <span style="color: var(--text-light); display: flex; align-items: center; gap: 0.25rem;">
                         👥 ${participantCount} katılımcı
-                    </span>
-                    <span class="countdown ${countdownClass}">
-                        ${countdownText}
                     </span>
                 </div>
             </div>
+
+            <!-- Sağ: Puan ve Süre -->
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; min-width: 120px;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(16, 185, 129, 0.15)); border-radius: 20px;">
+                    <span style="font-size: 1.25rem;">🏆</span>
+                    <span style="font-weight: 700; color: var(--primary); font-size: 1.125rem;">${challenge.points}</span>
+                    <span style="font-size: 0.75rem; color: var(--text-light);">puan</span>
+                </div>
+                <span class="countdown ${countdownClass}" style="font-size: 0.85rem; color: var(--text-light); display: flex; align-items: center; gap: 0.25rem;">
+                    ⏰ ${countdownText}
+                </span>
+            </div>
+
         </div>
     `;
 }
