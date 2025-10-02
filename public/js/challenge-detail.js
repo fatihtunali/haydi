@@ -2,6 +2,8 @@
 let currentChallenge = null;
 let isParticipant = false;
 let submissions = [];
+let teams = [];
+let userTeam = null;
 
 // Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', async () => {
@@ -15,6 +17,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadChallenge(challengeId);
     await loadSubmissions(challengeId);
+
+    // Takım challenge'ı ise takımları yükle
+    if (currentChallenge && currentChallenge.is_team_based) {
+        await loadTeams(challengeId);
+    }
 });
 
 // Challenge detayını yükle
@@ -172,6 +179,13 @@ function renderChallengeDetail() {
                             🚀 Gönder
                         </button>
                     </form>
+                </div>
+            ` : ''}
+
+            <!-- Teams Section (sadece takım challenge'larında) -->
+            ${c.is_team_based ? `
+                <div id="teamsContainer" style="margin-top: 2rem; padding: 2rem; background: var(--bg); border-radius: 16px;">
+                    <!-- Takımlar buraya yüklenecek -->
                 </div>
             ` : ''}
 
@@ -620,6 +634,89 @@ async function loadSubmissions(challengeId) {
     }
 }
 
+// Takımları yükle
+async function loadTeams(challengeId) {
+    const teamsContainer = document.getElementById('teamsContainer');
+
+    if (!teamsContainer) return;
+
+    try {
+        showLoading(teamsContainer);
+
+        const data = await TeamAPI.getByChallenge(challengeId);
+        teams = data.teams || [];
+
+        // Kullanıcının takımını bul
+        if (isLoggedIn()) {
+            const userId = getCurrentUserId();
+            userTeam = teams.find(t => t.members && t.members.some(m => m.id === userId));
+        }
+
+        renderTeams();
+
+    } catch (error) {
+        console.error('Takım yükleme hatası:', error);
+        teamsContainer.innerHTML = `<p>Takımlar yüklenirken bir hata oluştu</p>`;
+    }
+}
+
+// Takımları render et
+function renderTeams() {
+    const teamsContainer = document.getElementById('teamsContainer');
+
+    if (!teamsContainer) return;
+
+    const content = `
+        <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">👥 Takımlar</h3>
+            ${!userTeam && isLoggedIn() ? `
+                <button onclick="showCreateTeamModal()" class="btn btn-primary btn-small">
+                    + Takım Oluştur
+                </button>
+            ` : ''}
+        </div>
+
+        ${teams.length === 0 ? `
+            <div class="empty-state" style="padding: 2rem;">
+                <div class="empty-icon">👥</div>
+                <p>Henüz takım yok</p>
+                ${isLoggedIn() ? '<p style="font-size: 0.9rem; color: var(--text-light);">İlk takımı sen oluştur!</p>' : ''}
+            </div>
+        ` : `
+            <div style="display: grid; gap: 1rem;">
+                ${teams.map(team => `
+                    <div style="background: ${userTeam && userTeam.id === team.id ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(16, 185, 129, 0.05))' : 'var(--card-bg)'}; padding: 1.5rem; border-radius: 12px; border: 2px solid ${userTeam && userTeam.id === team.id ? 'var(--primary)' : 'var(--border)'};">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                                    ${team.name}
+                                    ${userTeam && userTeam.id === team.id ? '<span style="font-size: 0.75rem; padding: 0.25rem 0.75rem; background: var(--primary); color: white; border-radius: 12px;">Takımınız</span>' : ''}
+                                </h4>
+                                <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-light);">
+                                    <span>👤 Kaptan: ${team.captain_username}</span>
+                                    <span>👥 ${team.member_count} üye</span>
+                                    <span>🏆 ${team.total_points} puan</span>
+                                </div>
+                            </div>
+                            ${userTeam && userTeam.id === team.id ? `
+                                <button onclick="leaveTeam(${team.id})" class="btn btn-danger btn-small">
+                                    Ayrıl
+                                </button>
+                            ` : !userTeam && isLoggedIn() ? `
+                                <button onclick="joinTeam(${team.id})" class="btn btn-primary btn-small">
+                                    Katıl
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `}
+    `;
+
+    teamsContainer.innerHTML = content;
+}
+
 // Submission kartını render et
 function renderSubmission(s) {
     const displayName = s.full_name || s.username;
@@ -805,4 +902,104 @@ function formatTimeAgo(date) {
     }
 
     return 'Az önce';
+}
+
+// ===== TAKIM FONKSİYONLARI =====
+
+// Takım oluşturma modalını göster
+function showCreateTeamModal() {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+
+    modal.innerHTML = `
+        <div style="background: var(--card-bg); padding: 2rem; border-radius: 16px; width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);" onclick="event.stopPropagation()">
+            <h2 style="margin: 0 0 1.5rem 0; font-size: 1.5rem; font-weight: 700;">👥 Yeni Takım Oluştur</h2>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Takım Adı</label>
+                <input
+                    type="text"
+                    id="teamNameInput"
+                    class="form-input"
+                    placeholder="Örn: Yıldızlar Takımı"
+                    style="width: 100%;"
+                    maxlength="50"
+                >
+                <p style="font-size: 0.85rem; color: var(--text-light); margin: 0.5rem 0 0 0;">
+                    💡 Takım adı benzersiz ve akılda kalıcı olmalı
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-secondary">
+                    İptal
+                </button>
+                <button onclick="createTeam()" class="btn btn-primary">
+                    Oluştur
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.getElementById('teamNameInput').focus();
+}
+
+// Takım oluştur
+async function createTeam() {
+    const teamName = document.getElementById('teamNameInput').value.trim();
+
+    if (!teamName) {
+        showError('Takım adı gerekli');
+        return;
+    }
+
+    try {
+        await TeamAPI.create(currentChallenge.id, teamName);
+        showSuccess('Takım oluşturuldu! 🎉');
+
+        // Modalı kapat
+        document.querySelector('[style*="position: fixed"]')?.remove();
+
+        // Takımları yeniden yükle
+        await loadTeams(currentChallenge.id);
+
+    } catch (error) {
+        showError(error.message || 'Takım oluşturulamadı');
+    }
+}
+
+// Takıma katıl
+async function joinTeam(teamId) {
+    if (!confirm('Bu takıma katılmak istediğinize emin misiniz?')) return;
+
+    try {
+        await TeamAPI.join(teamId);
+        showSuccess('Takıma katıldınız! 👥');
+
+        // Takımları yeniden yükle
+        await loadTeams(currentChallenge.id);
+
+    } catch (error) {
+        showError(error.message || 'Takıma katılınamadı');
+    }
+}
+
+// Takımdan ayrıl
+async function leaveTeam(teamId) {
+    if (!confirm('Takımdan ayrılmak istediğinize emin misiniz?')) return;
+
+    try {
+        await TeamAPI.leave(teamId);
+        showSuccess('Takımdan ayrıldınız');
+
+        // Takımları yeniden yükle
+        await loadTeams(currentChallenge.id);
+
+    } catch (error) {
+        showError(error.message || 'Takımdan ayrılınamadı');
+    }
 }

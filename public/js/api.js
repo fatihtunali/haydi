@@ -128,3 +128,39 @@ const SubmissionAPI = {
         });
     }
 };
+
+// Team API
+const TeamAPI = {
+    getByChallenge: async (challengeId) => {
+        return apiRequest(`/teams/challenge/${challengeId}`);
+    },
+
+    getDetail: async (teamId) => {
+        return apiRequest(`/teams/${teamId}`);
+    },
+
+    create: async (challengeId, name) => {
+        return apiRequest(`/teams/challenge/${challengeId}`, {
+            method: 'POST',
+            body: JSON.stringify({ name })
+        });
+    },
+
+    join: async (teamId) => {
+        return apiRequest(`/teams/${teamId}/join`, {
+            method: 'POST'
+        });
+    },
+
+    leave: async (teamId) => {
+        return apiRequest(`/teams/${teamId}/leave`, {
+            method: 'POST'
+        });
+    },
+
+    delete: async (teamId) => {
+        return apiRequest(`/teams/${teamId}`, {
+            method: 'DELETE'
+        });
+    }
+};
