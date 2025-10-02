@@ -4,7 +4,8 @@ let currentUser = null;
 let userChallenges = [];
 let userSubmissions = [];
 let userTeams = [];
-let activeTab = 'info'; // 'info', 'challenges', 'submissions', veya 'teams'
+let myChallenges = []; // Kullanıcının oluşturduğu challenge'lar
+let activeTab = 'info'; // 'info', 'challenges', 'submissions', 'teams', 'created-challenges'
 
 // Global refresh fonksiyonu - diğer sayfalarda takım değişikliklerinden sonra çağrılabilir
 window.refreshProfileTeams = async function() {
@@ -49,6 +50,7 @@ async function loadProfile() {
         await loadUserChallenges();
         await loadUserSubmissions();
         await loadUserTeams();
+        await loadMyChallenges();
 
         // Profil HTML'ini oluştur
         renderProfile();
@@ -132,11 +134,18 @@ function renderProfile() {
                         style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'teams' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'teams' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
                         👥 Takımlarım (${userTeams.length})
                     </button>
+                    <button
+                        onclick="switchTab('created-challenges')"
+                        id="tab-created-challenges"
+                        class="profile-tab ${activeTab === 'created-challenges' ? 'active' : ''}"
+                        style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'created-challenges' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'created-challenges' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
+                        ✏️ Oluşturduklarım (${myChallenges.length})
+                    </button>
                 </div>
 
                 <!-- Tab Content -->
                 <div id="tabContent" style="padding: 2rem;">
-                    ${activeTab === 'info' ? renderInfoTab() : (activeTab === 'challenges' ? renderChallengesTab() : (activeTab === 'submissions' ? renderSubmissionsTab() : renderTeamsTab()))}
+                    ${activeTab === 'info' ? renderInfoTab() : (activeTab === 'challenges' ? renderChallengesTab() : (activeTab === 'submissions' ? renderSubmissionsTab() : (activeTab === 'teams' ? renderTeamsTab() : renderCreatedChallengesTab())))}
                 </div>
             </div>
         </div>
@@ -608,6 +617,141 @@ async function deleteTeamFromProfile(teamId) {
 
     } catch (error) {
         showError(error.message || 'Takım silinirken bir hata oluştu');
+    }
+}
+
+// Kullanıcının oluşturduğu challenge'ları yükle
+async function loadMyChallenges() {
+    try {
+        const data = await ChallengeAPI.getMyChallenges();
+        myChallenges = data.challenges || [];
+    } catch (error) {
+        console.error('Oluşturulan challenge\'lar yüklenemedi:', error);
+        myChallenges = [];
+    }
+}
+
+// Oluşturduklarım Tab'ını render et
+function renderCreatedChallengesTab() {
+    if (myChallenges.length === 0) {
+        return `
+            <div class="empty-state">
+                <div class="empty-icon">✏️</div>
+                <p style="margin: 1rem 0;">Henüz bir challenge oluşturmadınız</p>
+                <a href="/create-challenge" class="btn btn-primary">🎯 Challenge Oluştur</a>
+            </div>
+        `;
+    }
+
+    return `
+        <div style="display: grid; gap: 1.5rem;">
+            ${myChallenges.map(challenge => renderCreatedChallengeCard(challenge)).join('')}
+        </div>
+    `;
+}
+
+// Oluşturulan challenge kartını render et
+function renderCreatedChallengeCard(challenge) {
+    const statusColors = {
+        'taslak': { bg: 'rgba(107, 114, 128, 0.1)', border: '#6b7280', text: '#6b7280', icon: '📝', label: 'Taslak' },
+        'beklemede': { bg: 'rgba(245, 158, 11, 0.1)', border: '#f59e0b', text: '#f59e0b', icon: '⏳', label: 'Onay Bekliyor' },
+        'aktif': { bg: 'rgba(16, 185, 129, 0.1)', border: '#10b981', text: '#10b981', icon: '✅', label: 'Aktif' },
+        'bitti': { bg: 'rgba(107, 114, 128, 0.1)', border: '#6b7280', text: '#6b7280', icon: '🏁', label: 'Bitti' },
+        'iptal': { bg: 'rgba(239, 68, 68, 0.1)', border: '#ef4444', text: '#ef4444', icon: '❌', label: 'İptal' }
+    };
+
+    const status = statusColors[challenge.status] || statusColors['taslak'];
+    const difficultyClass = `difficulty-${challenge.difficulty}`;
+
+    return `
+        <div style="
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid ${status.border};
+            transition: all 0.3s;
+        " onmouseover="this.style.transform='translateX(5px)';"
+           onmouseout="this.style.transform='translateX(0)';">
+
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                        ${challenge.category_icon ? `<span style="font-size: 1.5rem;">${challenge.category_icon}</span>` : ''}
+                        <span class="challenge-difficulty ${difficultyClass}">${challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}</span>
+                        <span style="padding: 0.5rem 1rem; background: ${status.bg}; border: 2px solid ${status.border}; color: ${status.text}; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                            ${status.icon} ${status.label}
+                        </span>
+                    </div>
+                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; color: var(--text);">${challenge.title}</h3>
+                    <p style="margin: 0; color: var(--text-light); font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        ${challenge.description}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin: 1rem 0; padding: 1rem; background: rgba(99, 102, 241, 0.05); border-radius: 8px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--secondary);">🏆 ${challenge.points}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-light);">Puan</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">👥 ${challenge.participant_count || 0}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-light);">Katılımcı</div>
+                </div>
+                ${challenge.is_team_based ? `
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">🎭 ${challenge.min_team_size}-${challenge.max_team_size}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-light);">Takım</div>
+                    </div>
+                ` : ''}
+            </div>
+
+            <!-- Dates -->
+            <div style="display: flex; justify-content: space-between; margin: 1rem 0; font-size: 0.9rem; color: var(--text-light);">
+                <span>📅 ${formatDate(challenge.start_date)}</span>
+                <span>→</span>
+                <span>🏁 ${formatDate(challenge.end_date)}</span>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                ${challenge.status === 'taslak' || challenge.status === 'beklemede' ? `
+                    <a href="/edit-challenge/${challenge.id}" class="btn btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
+                        ✏️ Düzenle
+                    </a>
+                ` : `
+                    <a href="/challenge/${challenge.id}" class="btn btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
+                        👁️ Görüntüle
+                    </a>
+                `}
+                ${challenge.status === 'aktif' || challenge.status === 'bitti' ? '' : `
+                    <button onclick="deleteCreatedChallenge(${challenge.id})" class="btn btn-danger" style="flex: 1;">
+                        🗑️ Sil
+                    </button>
+                `}
+            </div>
+        </div>
+    `;
+}
+
+// Oluşturulan challenge'ı sil
+async function deleteCreatedChallenge(challengeId) {
+    if (!confirm('⚠️ Bu challenge\'ı silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.')) {
+        return;
+    }
+
+    try {
+        await ChallengeAPI.delete(challengeId);
+        showSuccess('Challenge başarıyla silindi');
+
+        // Listeyi yenile
+        await loadMyChallenges();
+        renderProfile();
+
+    } catch (error) {
+        showError(error.message || 'Challenge silinirken bir hata oluştu');
     }
 }
 

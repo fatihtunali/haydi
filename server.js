@@ -92,6 +92,14 @@ app.get('/leaderboard', (req, res) => {
     res.render('pages/leaderboard', { title: 'Liderlik Tablosu', activePage: 'leaderboard', challenge: null });
 });
 
+app.get('/create-challenge', (req, res) => {
+    res.render('pages/create-challenge', { title: 'Challenge Oluştur', activePage: '', challenge: null });
+});
+
+app.get('/edit-challenge/:id', (req, res) => {
+    res.render('pages/edit-challenge', { title: 'Challenge Düzenle', activePage: '', challenge: null, challengeId: req.params.id });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/challenges', challengeRoutes);

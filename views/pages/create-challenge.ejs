@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Haydi Hep Beraber</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <main class="main-content">
+        <!-- Hero -->
+        <section class="hero" style="padding: 2.5rem 0; background: linear-gradient(135deg, #6366f1 0%, #10b981 100%); color: white; text-align: center;">
+            <div class="container">
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem; font-weight: 800;">🎯 Challenge Oluştur</h1>
+                <p style="font-size: 1rem; opacity: 0.95;">Kendi meydan okumalarını oluştur ve topluluğu harekete geçir!</p>
+            </div>
+        </section>
+
+        <!-- Form -->
+        <section class="content-section" style="padding: 3rem 0;">
+            <div class="container" style="max-width: 800px;">
+                <form id="challengeForm" style="background: var(--card-bg); padding: 2rem; border-radius: 16px; border: 2px solid var(--border);">
+
+                    <!-- Başlık -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="title" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                            Challenge Başlığı <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" id="title" name="title" required
+                            placeholder="Örn: 30 Gün Fotoğraf Challenge'ı"
+                            style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                    </div>
+
+                    <!-- Açıklama -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="description" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                            Açıklama <span style="color: #ef4444;">*</span>
+                        </label>
+                        <textarea id="description" name="description" required rows="4"
+                            placeholder="Challenge'ınızı detaylı olarak açıklayın..."
+                            style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text); resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Kategori & Zorluk -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="form-group">
+                            <label for="category_id" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                                Kategori
+                            </label>
+                            <select id="category_id" name="category_id"
+                                style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                                <option value="">Kategori seçin</option>
+                                <!-- Dinamik yüklenecek -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="difficulty" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                                Zorluk
+                            </label>
+                            <select id="difficulty" name="difficulty"
+                                style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                                <option value="kolay">🟢 Kolay</option>
+                                <option value="orta" selected>🟡 Orta</option>
+                                <option value="zor">🔴 Zor</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tarihler -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="form-group">
+                            <label for="start_date" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                                Başlangıç Tarihi <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="date" id="start_date" name="start_date" required
+                                style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="end_date" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                                Bitiş Tarihi <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="date" id="end_date" name="end_date" required
+                                style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                        </div>
+                    </div>
+
+                    <!-- Puan & Max Katılımcı -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="form-group">
+                            <label for="points" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                                Puan
+                            </label>
+                            <input type="number" id="points" name="points" value="100" min="10" step="10"
+                                style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="max_participants" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                                Max Katılımcı <small style="color: var(--text-light);">(opsiyonel)</small>
+                            </label>
+                            <input type="number" id="max_participants" name="max_participants" min="1" placeholder="Sınırsız"
+                                style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                        </div>
+                    </div>
+
+                    <!-- Kurallar -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="rules" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                            Kurallar <small style="color: var(--text-light);">(opsiyonel)</small>
+                        </label>
+                        <textarea id="rules" name="rules" rows="3"
+                            placeholder="Challenge kurallarını buraya yazın..."
+                            style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text); resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Ödül -->
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="prize_description" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">
+                            Ödül Açıklaması <small style="color: var(--text-light);">(opsiyonel)</small>
+                        </label>
+                        <input type="text" id="prize_description" name="prize_description"
+                            placeholder="Örn: İlk 3'e özel rozet"
+                            style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                    </div>
+
+                    <!-- Takım Challenge -->
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(99, 102, 241, 0.05); border-radius: 8px; border: 2px solid rgba(99, 102, 241, 0.2);">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="is_team_based" name="is_team_based"
+                                style="width: 20px; height: 20px; cursor: pointer;">
+                            <span style="font-weight: 600; color: var(--text);">👥 Bu bir takım challenge'ı</span>
+                        </label>
+
+                        <!-- Team Size Fields (hidden by default) -->
+                        <div id="teamSizeFields" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(99, 102, 241, 0.2);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label for="min_team_size" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); font-size: 0.9rem;">
+                                        Min Takım Büyüklüğü
+                                    </label>
+                                    <input type="number" id="min_team_size" name="min_team_size" value="2" min="1"
+                                        style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="max_team_size" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); font-size: 0.9rem;">
+                                        Max Takım Büyüklüğü
+                                    </label>
+                                    <input type="number" id="max_team_size" name="max_team_size" value="5" min="1"
+                                        style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" onclick="window.location.href='/profile'" class="btn btn-secondary">
+                            İptal
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            💾 Taslak Olarak Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <%- include('../partials/footer') %>
+
+    <script src="/js/utils.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/challenge-form.js"></script>
+</body>
+</html>

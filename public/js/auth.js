@@ -21,6 +21,7 @@ function updateAuthButtons() {
                 <span style="font-weight: 700; color: var(--primary); transition: all 0.3s;" id="userPoints">${user.points || 0}</span>
                 <span style="font-size: 0.85rem; color: var(--text-light);">puan</span>
             </div>
+            <a href="/create-challenge" class="btn btn-small btn-primary">🎯 Challenge Oluştur</a>
             ${user.role === 'admin' ? '<a href="/admin" class="btn btn-small" style="background: #ef4444; color: white;">🎛️ Admin</a>' : ''}
             <a href="/profile" class="nav-link" style="color: #2C3E50; font-weight: 500; display: flex; align-items: center; gap: 8px;">
                 ${user.avatar_url ? `<img src="${user.avatar_url}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">` : ''}
