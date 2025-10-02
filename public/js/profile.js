@@ -8,6 +8,8 @@ let myChallenges = []; // Kullanıcının oluşturduğu challenge'lar
 let userBadges = []; // Kullanıcının badge'leri
 let followStats = null; // Takipçi/takip edilen sayıları
 let activeTab = 'info'; // 'info', 'challenges', 'submissions', 'teams', 'created-challenges'
+let isOwnProfile = true; // Kendi profilimizi mi yoksa başka birinin profilini mi görüntülüyoruz?
+let viewingUserId = null; // Görüntülediğimiz kullanıcı ID'si
 
 // Global refresh fonksiyonu - diğer sayfalarda takım değişikliklerinden sonra çağrılabilir
 window.refreshProfileTeams = async function() {
@@ -25,8 +27,11 @@ window.refreshProfileTeams = async function() {
 async function loadProfile() {
     const profileContent = document.getElementById('profileContent');
 
-    // Login kontrolü
-    if (!isLoggedIn()) {
+    // window.viewingUserId varsa onu kullan, yoksa kendi profilimizi yükle
+    viewingUserId = window.viewingUserId || null;
+
+    // Başka kullanıcının profilini görüntülüyorsak login kontrolü yapma
+    if (!viewingUserId && !isLoggedIn()) {
         window.location.href = '/login';
         return;
     }
@@ -34,25 +39,29 @@ async function loadProfile() {
     try {
         showLoading(profileContent);
 
-        // Profil bilgilerini API'den al
-        const response = await fetch('/api/auth/profile', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Profil yüklenemedi');
+        // Kendi profilimizi mi yoksa başka birinin profilini mi görüntülüyoruz?
+        if (viewingUserId) {
+            // Başka kullanıcının profilini yükle
+            isOwnProfile = false;
+            const data = await AuthAPI.getUserById(viewingUserId);
+            currentUser = data.user;
+        } else {
+            // Kendi profilimizi yükle
+            isOwnProfile = true;
+            const data = await AuthAPI.getProfile();
+            currentUser = data.user;
         }
-
-        const data = await response.json();
-        currentUser = data.user;
 
         // Kullanıcının challenge'larını, submission'larını ve takımlarını yükle (render'dan ÖNCE)
         await loadUserChallenges();
         await loadUserSubmissions();
         await loadUserTeams();
-        await loadMyChallenges();
+
+        // Sadece kendi profilimizde oluşturduğumuz challenge'ları göster
+        if (isOwnProfile) {
+            await loadMyChallenges();
+        }
+
         await loadUserBadges();
         await loadFollowStats();
 
@@ -90,12 +99,14 @@ function renderProfile() {
                             <h1 style="margin: 0; font-size: 2rem;">
                                 ${user.full_name || user.username}
                             </h1>
-                            <button onclick="openEditProfileModal()" style="padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; backdrop-filter: blur(10px); transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.2)';">
-                                ✏️ Düzenle
-                            </button>
+                            ${isOwnProfile ? `
+                                <button onclick="openEditProfileModal()" style="padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; backdrop-filter: blur(10px); transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.2)';">
+                                    ✏️ Düzenle
+                                </button>
+                            ` : ''}
                         </div>
                         <p style="margin: 0 0 1rem 0; opacity: 0.9; font-size: 1.1rem;">@${user.username}</p>
-                        ${user.bio ? `<p style="margin: 0; opacity: 0.9;">${user.bio}</p>` : '<p style="margin: 0; opacity: 0.7; font-style: italic;">Bio eklemek için profili düzenle</p>'}
+                        ${user.bio ? `<p style="margin: 0; opacity: 0.9;">${user.bio}</p>` : (isOwnProfile ? '<p style="margin: 0; opacity: 0.7; font-style: italic;">Bio eklemek için profili düzenle</p>' : '<p style="margin: 0; opacity: 0.7; font-style: italic;">Henüz bio eklenmemiş</p>')}
                     </div>
 
                     <!-- İstatistikler -->
@@ -121,6 +132,16 @@ function renderProfile() {
                             <div style="font-size: 13px; opacity: 0.9;">Rozet</div>
                         </div>
                     </div>
+
+                    <!-- Takip Et Butonu (Başka birinin profilindeyse) -->
+                    ${!isOwnProfile && isLoggedIn() ? `
+                        <div style="margin-top: 2rem; width: 100%;">
+                            <button id="followButton" onclick="toggleFollow()" style="width: 100%; padding: 1rem 2rem; background: ${followStats && followStats.is_following ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #10b981, #059669)'}; color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; gap: 0.75rem;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.2)';">
+                                <span style="font-size: 1.5rem;">${followStats && followStats.is_following ? '❌' : '➕'}</span>
+                                <span>${followStats && followStats.is_following ? 'Takibi Bırak' : 'Takip Et'}</span>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
 
@@ -139,29 +160,31 @@ function renderProfile() {
                         id="tab-challenges"
                         class="profile-tab ${activeTab === 'challenges' ? 'active' : ''}"
                         style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'challenges' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'challenges' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
-                        🎯 Meydan Okumalarım (${userChallenges.length})
+                        🎯 ${isOwnProfile ? 'Meydan Okumalarım' : 'Meydan Okumaları'} (${userChallenges.length})
                     </button>
                     <button
                         onclick="switchTab('submissions')"
                         id="tab-submissions"
                         class="profile-tab ${activeTab === 'submissions' ? 'active' : ''}"
                         style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'submissions' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'submissions' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
-                        📸 Gönderilerim (${userSubmissions.length})
+                        📸 ${isOwnProfile ? 'Gönderilerim' : 'Gönderileri'} (${userSubmissions.length})
                     </button>
                     <button
                         onclick="switchTab('teams')"
                         id="tab-teams"
                         class="profile-tab ${activeTab === 'teams' ? 'active' : ''}"
                         style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'teams' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'teams' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
-                        👥 Takımlarım (${userTeams.length})
+                        👥 Takımlar (${userTeams.length})
                     </button>
-                    <button
-                        onclick="switchTab('created-challenges')"
-                        id="tab-created-challenges"
-                        class="profile-tab ${activeTab === 'created-challenges' ? 'active' : ''}"
-                        style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'created-challenges' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'created-challenges' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
-                        ✏️ Oluşturduklarım (${myChallenges.length})
-                    </button>
+                    ${isOwnProfile ? `
+                        <button
+                            onclick="switchTab('created-challenges')"
+                            id="tab-created-challenges"
+                            class="profile-tab ${activeTab === 'created-challenges' ? 'active' : ''}"
+                            style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'created-challenges' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'created-challenges' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
+                            ✏️ Oluşturduklarım (${myChallenges.length})
+                        </button>
+                    ` : ''}
                 </div>
 
                 <!-- Tab Content -->
@@ -181,13 +204,15 @@ function renderInfoTab() {
 
     return `
         <div style="display: grid; gap: 1.5rem;">
-            <div>
-                <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 0.5rem; font-weight: 600;">📧 E-posta</label>
-                <div style="color: var(--text); font-size: 1.05rem;">${user.email}</div>
-            </div>
+            ${isOwnProfile ? `
+                <div>
+                    <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 0.5rem; font-weight: 600;">📧 E-posta</label>
+                    <div style="color: var(--text); font-size: 1.05rem;">${user.email}</div>
+                </div>
+            ` : ''}
 
             <div>
-                <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 0.5rem; font-weight: 600;">📅 Kayıt Tarihi</label>
+                <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 0.5rem; font-weight: 600;">📅 ${isOwnProfile ? 'Kayıt Tarihi' : 'Üye Olma Tarihi'}</label>
                 <div style="color: var(--text); font-size: 1.05rem;">${new Date(user.created_at).toLocaleDateString('tr-TR', {
                     year: 'numeric',
                     month: 'long',
@@ -225,11 +250,13 @@ function renderInfoTab() {
                 ` : ''}
             </div>
 
-            <div style="margin-top: 1rem; padding-top: 2rem; border-top: 2px solid var(--border);">
-                <button onclick="handleLogout()" class="btn btn-danger" style="width: 100%; padding: 1rem; font-size: 1.05rem;">
-                    🚪 Çıkış Yap
-                </button>
-            </div>
+            ${isOwnProfile ? `
+                <div style="margin-top: 1rem; padding-top: 2rem; border-top: 2px solid var(--border);">
+                    <button onclick="handleLogout()" class="btn btn-danger" style="width: 100%; padding: 1rem; font-size: 1.05rem;">
+                        🚪 Çıkış Yap
+                    </button>
+                </div>
+            ` : ''}
         </div>
     `;
 }
@@ -240,8 +267,8 @@ function renderChallengesTab() {
         return `
             <div class="empty-state">
                 <div class="empty-icon">🎯</div>
-                <p style="margin: 1rem 0;">Henüz bir meydan okumaya katılmadınız</p>
-                <a href="/challenges" class="btn btn-primary">Meydan Okumalara Göz At</a>
+                <p style="margin: 1rem 0;">${isOwnProfile ? 'Henüz bir meydan okumaya katılmadınız' : 'Bu kullanıcı henüz bir meydan okumaya katılmamış'}</p>
+                ${isOwnProfile ? '<a href="/challenges" class="btn btn-primary">Meydan Okumalara Göz At</a>' : ''}
             </div>
         `;
     }
@@ -430,8 +457,8 @@ function renderSubmissionsTab() {
         return `
             <div class="empty-state">
                 <div class="empty-icon">📸</div>
-                <p style="margin: 1rem 0;">Henüz gönderi yok</p>
-                <a href="/challenges" class="btn btn-primary">Meydan Okumalara Katıl</a>
+                <p style="margin: 1rem 0;">${isOwnProfile ? 'Henüz gönderi yok' : 'Bu kullanıcının henüz gönderisi yok'}</p>
+                ${isOwnProfile ? '<a href="/challenges" class="btn btn-primary">Meydan Okumalara Katıl</a>' : ''}
             </div>
         `;
     }
@@ -552,8 +579,8 @@ function renderTeamsTab() {
         return `
             <div class="empty-state">
                 <div class="empty-icon">👥</div>
-                <p style="margin: 1rem 0;">Henüz bir takıma katılmadınız</p>
-                <a href="/challenges?team=team" class="btn btn-primary">Takım Meydan Okumalarına Göz At</a>
+                <p style="margin: 1rem 0;">${isOwnProfile ? 'Henüz bir takıma katılmadınız' : 'Bu kullanıcı henüz bir takımda değil'}</p>
+                ${isOwnProfile ? '<a href="/challenges?team=team" class="btn btn-primary">Takım Meydan Okumalarına Göz At</a>' : ''}
             </div>
         `;
     }
@@ -986,7 +1013,9 @@ async function loadUserBadges() {
 // Takipçi/takip edilen sayılarını yükle
 async function loadFollowStats() {
     try {
-        const data = await FollowAPI.getStats(currentUser.id);
+        // Görüntülenen kullanıcının ID'sini kullan
+        const userId = viewingUserId || currentUser.id;
+        const data = await FollowAPI.getStats(userId);
         followStats = data;
     } catch (error) {
         console.error('Follow stats yüklenemedi:', error);
@@ -1052,6 +1081,62 @@ function renderBadgeCard(badge, isEarned) {
             ` : ''}
         </div>
     `;
+}
+
+// Basit notification göster
+function showNotification(message, type = 'info') {
+    // Basit bir alert kullanıyoruz, daha sonra toast yapılabilir
+    if (type === 'error') {
+        alert('❌ ' + message);
+    } else {
+        alert('✅ ' + message);
+    }
+}
+
+// Takip et/bırak butonu
+async function toggleFollow() {
+    if (!isLoggedIn()) {
+        window.location.href = '/login';
+        return;
+    }
+
+    if (!viewingUserId) return;
+
+    const button = document.getElementById('followButton');
+    if (!button) return;
+
+    try {
+        // Butonu devre dışı bırak
+        button.disabled = true;
+        button.style.opacity = '0.6';
+        button.style.cursor = 'not-allowed';
+
+        if (followStats.is_following) {
+            // Takibi bırak
+            await FollowAPI.unfollow(viewingUserId);
+            followStats.is_following = false;
+            followStats.follower_count--;
+            showNotification('Takip bırakıldı', 'success');
+        } else {
+            // Takip et
+            await FollowAPI.follow(viewingUserId);
+            followStats.is_following = true;
+            followStats.follower_count++;
+            showNotification('Takip edildi', 'success');
+        }
+
+        // Profili yeniden render et
+        renderProfile();
+
+    } catch (error) {
+        console.error('Takip işlemi hatası:', error);
+        showNotification(error.message || 'Bir hata oluştu', 'error');
+
+        // Butonu tekrar aktif et
+        button.disabled = false;
+        button.style.opacity = '1';
+        button.style.cursor = 'pointer';
+    }
 }
 
 // Sayfa yüklendiğinde

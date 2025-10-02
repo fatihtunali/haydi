@@ -142,52 +142,68 @@ function renderSubmission(s, showChallengeBadge = false) {
 
             <!-- Media (Image or Video) -->
             ${s.media_url ? (isVideo ? `
-                <video controls style="width: 100%; max-height: 500px; background: #000;">
+                <video controls style="width: 100%; aspect-ratio: 16/9; background: #000; display: block; object-fit: contain;">
                     <source src="${s.media_url}" type="video/mp4">
                     Tarayıcınız video oynatmayı desteklemiyor.
                 </video>
             ` : `
-                <img src="${s.media_url}" alt="Submission" style="width: 100%; height: 400px; object-fit: cover;">
+                <img src="${s.media_url}" alt="Submission" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; background: var(--bg);">
             `) : ''}
 
-            <!-- Content -->
-            <div style="padding: 1.5rem;">
-                <!-- User Info -->
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    ${s.avatar_url
-                        ? `<img src="${s.avatar_url}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`
-                        : `<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">${s.username.charAt(0).toUpperCase()}</div>`
-                    }
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; color: var(--text);">${displayName}</div>
-                        <div style="font-size: 0.85rem; color: var(--text-light);">${timeAgo}</div>
+            <!-- Content Container -->
+            <div style="padding: 1rem 1.25rem;">
+
+                <!-- User Info + Follow Button -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        ${s.avatar_url
+                            ? `<img src="${s.avatar_url}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">`
+                            : `<div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.9rem;">${s.username.charAt(0).toUpperCase()}</div>`
+                        }
+                        <div>
+                            <a href="/profile/${s.user_id}" style="font-weight: 600; color: var(--text); text-decoration: none; display: block; font-size: 0.95rem;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${displayName}</a>
+                            <div style="font-size: 0.8rem; color: var(--text-light);">${timeAgo}</div>
+                        </div>
                     </div>
-                    ${showChallengeBadge && s.challenge_title ? `
-                        <a href="/challenge/${s.challenge_id}" style="text-decoration: none;">
-                            <span class="challenge-category" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
-                                🎯 ${s.challenge_title}
-                            </span>
-                        </a>
+                    ${s.user_id !== getCurrentUserId() && isLoggedIn() && !s.is_following ? `
+                        <button onclick="event.stopPropagation(); quickFollow(${s.user_id}, this)" class="quick-follow-btn" style="padding: 0.4rem 1rem; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                            Takip Et
+                        </button>
                     ` : ''}
                 </div>
 
+                <!-- Challenge Badge -->
+                ${showChallengeBadge && s.challenge_title ? `
+                    <a href="/challenge/${s.challenge_id}" style="text-decoration: none; display: inline-block; margin-bottom: 0.75rem;">
+                        <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.9rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 20px; font-size: 0.85rem; color: var(--primary); font-weight: 600;">
+                            <span>🎯</span>
+                            <span>${s.challenge_title}</span>
+                        </div>
+                    </a>
+                ` : ''}
+
                 <!-- Location -->
                 ${s.location ? `
-                    <div style="margin-bottom: 1rem; color: var(--text); font-size: 0.95rem;">
-                        📍 <strong>${s.location}</strong>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; color: var(--text); font-size: 0.9rem;">
+                        <span style="color: var(--text-light);">📍</span>
+                        <span style="font-weight: 500;">${s.location}</span>
                     </div>
                 ` : ''}
 
-                <!-- Content -->
-                <p style="color: var(--text); line-height: 1.6; margin-bottom: 1rem; white-space: pre-wrap;">${s.content || ''}</p>
+                <!-- Content Text -->
+                ${s.content ? `
+                    <p style="color: var(--text); line-height: 1.5; margin: 0 0 1rem 0; white-space: pre-wrap; font-size: 0.95rem;">${s.content}</p>
+                ` : ''}
 
-                <!-- Actions -->
-                <div style="display: flex; gap: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                    <button onclick="toggleSubmissionLike(${s.id})" id="like-btn-${s.id}" style="display: flex; align-items: center; gap: 0.5rem; background: none; border: none; cursor: pointer; color: ${s.is_liked_by_user ? '#ef4444' : 'var(--text-light)'}; font-weight: 600; transition: all 0.3s;">
-                        ${s.is_liked_by_user ? '❤️' : '🤍'} <span id="like-count-${s.id}">${s.likes_count || 0}</span>
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 1.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+                    <button onclick="toggleSubmissionLike(${s.id})" id="like-btn-${s.id}" style="display: flex; align-items: center; gap: 0.5rem; background: none; border: none; cursor: pointer; color: ${s.is_liked_by_user ? '#ef4444' : 'var(--text-light)'}; font-weight: 600; font-size: 0.95rem; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                        <span style="font-size: 1.25rem;">${s.is_liked_by_user ? '❤️' : '🤍'}</span>
+                        <span id="like-count-${s.id}">${s.likes_count || 0}</span>
                     </button>
-                    <button onclick="showComments(${s.id})" style="display: flex; align-items: center; gap: 0.5rem; background: none; border: none; cursor: pointer; color: var(--text-light); font-weight: 600; transition: all 0.3s;">
-                        💬 ${s.comments_count || 0}
+                    <button onclick="showComments(${s.id})" style="display: flex; align-items: center; gap: 0.5rem; background: none; border: none; cursor: pointer; color: var(--text-light); font-weight: 600; font-size: 0.95rem; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                        <span style="font-size: 1.25rem;">💬</span>
+                        <span>${s.comments_count || 0}</span>
                     </button>
                 </div>
 
@@ -251,7 +267,7 @@ async function showComments(submissionId) {
                                     : `<div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold;">${c.username.charAt(0).toUpperCase()}</div>`
                                 }
                                 <div>
-                                    <div style="font-weight: 600; font-size: 0.9rem; color: var(--text);">${c.username}</div>
+                                    <a href="/profile/${c.user_id}" style="font-weight: 600; font-size: 0.9rem; color: var(--text); text-decoration: none; cursor: pointer;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${c.username}</a>
                                     <div style="font-size: 0.8rem; color: var(--text-light);">${formatTimeAgo(new Date(c.created_at))}</div>
                                 </div>
                             </div>
@@ -297,5 +313,34 @@ async function handleAddComment(event, submissionId) {
 
     } catch (error) {
         showError(error.message || 'Yorum eklenirken hata oluştu');
+    }
+}
+
+// Hızlı takip et (gönderilerdeki buton için)
+async function quickFollow(userId, buttonElement) {
+    if (!isLoggedIn()) {
+        window.location.href = '/login';
+        return;
+    }
+
+    try {
+        // Butonu devre dışı bırak
+        buttonElement.disabled = true;
+        buttonElement.style.opacity = '0.5';
+        buttonElement.textContent = 'Takip Ediliyor...';
+
+        await FollowAPI.follow(userId);
+
+        // Butonu gizle (artık takip ediyoruz)
+        buttonElement.style.display = 'none';
+
+    } catch (error) {
+        console.error('Takip hatası:', error);
+        alert('Takip işlemi başarısız: ' + (error.message || 'Bilinmeyen hata'));
+
+        // Butonu eski haline getir
+        buttonElement.disabled = false;
+        buttonElement.style.opacity = '1';
+        buttonElement.textContent = 'Takip Et';
     }
 }

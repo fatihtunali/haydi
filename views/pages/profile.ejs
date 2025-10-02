@@ -12,4 +12,9 @@
         </div>
     </section>
 
+    <script>
+        // EJS'den gelen kullanıcı ID'si (eğer başka kullanıcının profilini görüntülüyorsak)
+        window.viewingUserId = <%= userId || 'null' %>;
+    </script>
+
 <%- include('../partials/footer', { customScripts: ['/js/profile.js'] }) %>

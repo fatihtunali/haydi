@@ -33,10 +33,13 @@ async function getSubmissions(req, res) {
             LIMIT ? OFFSET ?
         `, [challengeId, parseInt(limit), parseInt(offset)]);
 
-        // Eğer kullanıcı giriş yapmışsa beğenilerini kontrol et
+        // Eğer kullanıcı giriş yapmışsa beğenilerini ve takip durumunu kontrol et
         if (req.user) {
             const submissionIds = submissions.map(s => s.id);
+            const userIds = [...new Set(submissions.map(s => s.user_id))];
+
             if (submissionIds.length > 0) {
+                // Beğenileri kontrol et
                 const [likes] = await pool.query(`
                     SELECT submission_id
                     FROM likes
@@ -48,6 +51,26 @@ async function getSubmissions(req, res) {
                     s.is_liked_by_user = likedIds.has(s.id);
                 });
             }
+
+            if (userIds.length > 0) {
+                // Takip durumunu kontrol et
+                const [follows] = await pool.query(`
+                    SELECT following_id
+                    FROM follows
+                    WHERE follower_id = ? AND following_id IN (?)
+                `, [req.user.id, userIds]);
+
+                const followingIds = new Set(follows.map(f => f.following_id));
+                submissions.forEach(s => {
+                    s.is_following = followingIds.has(s.user_id);
+                });
+            }
+        } else {
+            // Login olmayan kullanıcılar için default değerler
+            submissions.forEach(s => {
+                s.is_liked_by_user = false;
+                s.is_following = false;
+            });
         }
 
         res.json({ submissions });
@@ -417,10 +440,13 @@ async function getFeed(req, res) {
 
         const [submissions] = await pool.query(query, params);
 
-        // Eğer kullanıcı giriş yapmışsa beğenilerini kontrol et
+        // Eğer kullanıcı giriş yapmışsa beğenilerini ve takip durumunu kontrol et
         if (req.user) {
             const submissionIds = submissions.map(s => s.id);
+            const userIds = [...new Set(submissions.map(s => s.user_id))];
+
             if (submissionIds.length > 0) {
+                // Beğenileri kontrol et
                 const [likes] = await pool.query(`
                     SELECT submission_id
                     FROM likes
@@ -432,6 +458,26 @@ async function getFeed(req, res) {
                     s.is_liked_by_user = likedIds.has(s.id);
                 });
             }
+
+            if (userIds.length > 0) {
+                // Takip durumunu kontrol et
+                const [follows] = await pool.query(`
+                    SELECT following_id
+                    FROM follows
+                    WHERE follower_id = ? AND following_id IN (?)
+                `, [req.user.id, userIds]);
+
+                const followingIds = new Set(follows.map(f => f.following_id));
+                submissions.forEach(s => {
+                    s.is_following = followingIds.has(s.user_id);
+                });
+            }
+        } else {
+            // Login olmayan kullanıcılar için default değerler
+            submissions.forEach(s => {
+                s.is_liked_by_user = false;
+                s.is_following = false;
+            });
         }
 
         res.json({ submissions });

@@ -289,10 +289,34 @@ async function updateAvatar(req, res) {
     }
 }
 
+// Başka kullanıcının profilini getir (public)
+async function getUserById(req, res) {
+    const { id } = req.params;
+
+    try {
+        const [users] = await pool.query(
+            `SELECT id, username, full_name, avatar_url, bio, points, created_at
+             FROM users WHERE id = ?`,
+            [id]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+
+        res.json({ user: users[0] });
+
+    } catch (error) {
+        console.error('Kullanıcı profil hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 module.exports = {
     register,
     login,
     getProfile,
+    getUserById,
     getUserChallenges,
     getUserSubmissions,
     updateProfile,

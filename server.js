@@ -84,7 +84,11 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/profile', (req, res) => {
-    res.render('pages/profile', { title: 'Profilim', activePage: 'profile', challenge: null });
+    res.render('pages/profile', { title: 'Profilim', activePage: 'profile', challenge: null, userId: null });
+});
+
+app.get('/profile/:userId', (req, res) => {
+    res.render('pages/profile', { title: 'Kullanıcı Profili', activePage: 'profile', challenge: null, userId: req.params.userId });
 });
 
 app.get('/admin', (req, res) => {

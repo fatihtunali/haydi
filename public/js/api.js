@@ -80,6 +80,10 @@ const AuthAPI = {
             method: 'PUT',
             body: formData // FormData, Content-Type otomatik ayarlanacak
         });
+    },
+
+    getUserById: async (userId) => {
+        return apiRequest(`/auth/users/${userId}`);
     }
 };
 
