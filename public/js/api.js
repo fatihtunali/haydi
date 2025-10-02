@@ -164,3 +164,22 @@ const TeamAPI = {
         });
     }
 };
+
+// Leaderboard API
+const LeaderboardAPI = {
+    getGlobal: async (period = 'all', limit = 50) => {
+        return apiRequest(`/leaderboard/global?period=${period}&limit=${limit}`);
+    },
+
+    getChallenge: async (challengeId, limit = 50) => {
+        return apiRequest(`/leaderboard/challenge/${challengeId}?limit=${limit}`);
+    },
+
+    getTeams: async (challengeId, limit = 50) => {
+        return apiRequest(`/leaderboard/teams/${challengeId}?limit=${limit}`);
+    },
+
+    getMyRank: async (period = 'all') => {
+        return apiRequest(`/leaderboard/my-rank?period=${period}`);
+    }
+};

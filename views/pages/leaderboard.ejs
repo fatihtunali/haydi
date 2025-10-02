@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Haydi Hep Beraber</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero" style="padding: 3rem 0; background: linear-gradient(135deg, #6366f1 0%, #10b981 100%); color: white; text-align: center;">
+            <div class="container">
+                <h1 style="font-size: 2.5rem; margin-bottom: 1rem; font-weight: 800;">🏆 Liderlik Tablosu</h1>
+                <p style="font-size: 1.125rem; opacity: 0.95;">En başarılı katılımcıları keşfedin!</p>
+            </div>
+        </section>
+
+        <!-- Leaderboard Content -->
+        <section class="content-section" style="padding: 3rem 0;">
+            <div class="container">
+                <!-- Tab Navigation -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border); overflow-x: auto; padding-bottom: 0;">
+                    <button onclick="switchLeaderboardType('global')" id="tab-global" class="leaderboard-tab active"
+                        style="padding: 1rem 2rem; background: none; border: none; border-bottom: 3px solid var(--primary); cursor: pointer; font-weight: 600; font-size: 1rem; color: var(--primary); white-space: nowrap;">
+                        🌍 Genel Sıralama
+                    </button>
+                    <button onclick="switchLeaderboardType('challenge')" id="tab-challenge" class="leaderboard-tab"
+                        style="padding: 1rem 2rem; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap;">
+                        🎯 Challenge Sıralaması
+                    </button>
+                    <button onclick="switchLeaderboardType('teams')" id="tab-teams" class="leaderboard-tab"
+                        style="padding: 1rem 2rem; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap;">
+                        👥 Takım Sıralaması
+                    </button>
+                </div>
+
+                <!-- Filters (Global tab için) -->
+                <div id="filters" style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="changePeriod('all')" id="period-all" class="period-btn active"
+                            style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                            Tüm Zamanlar
+                        </button>
+                        <button onclick="changePeriod('weekly')" id="period-weekly" class="period-btn"
+                            style="padding: 0.5rem 1rem; background: var(--card-bg); color: var(--text); border: 2px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                            Bu Hafta
+                        </button>
+                        <button onclick="changePeriod('monthly')" id="period-monthly" class="period-btn"
+                            style="padding: 0.5rem 1rem; background: var(--card-bg); color: var(--text); border: 2px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                            Bu Ay
+                        </button>
+                    </div>
+
+                    <!-- Challenge/Team seçici (challenge ve teams tab için) -->
+                    <div id="challengeSelector" style="display: none; flex: 1; min-width: 250px;">
+                        <select id="challengeSelect" onchange="onChallengeChange()"
+                            style="width: 100%; padding: 0.5rem 1rem; background: var(--card-bg); color: var(--text); border: 2px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                            <option value="">Challenge seçin...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- User's Rank Card (sadece login ise) -->
+                <div id="myRankCard" style="display: none; margin-bottom: 2rem;">
+                    <!-- Dinamik olarak yüklenecek -->
+                </div>
+
+                <!-- Podium (İlk 3) -->
+                <div id="podium" style="margin-bottom: 3rem;">
+                    <!-- Dinamik olarak yüklenecek -->
+                </div>
+
+                <!-- Leaderboard List -->
+                <div id="leaderboardList">
+                    <div style="text-align: center; padding: 3rem; color: var(--text-light);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+                        <p>Yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <%- include('../partials/footer') %>
+
+    <!-- Scripts -->
+    <script src="/js/utils.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/leaderboard.js"></script>
+</body>
+</html>

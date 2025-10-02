@@ -11,6 +11,7 @@ const challengeRoutes = require('./backend/routes/challenges');
 const submissionRoutes = require('./backend/routes/submissions');
 const adminRoutes = require('./backend/routes/admin');
 const teamRoutes = require('./backend/routes/teams');
+const leaderboardRoutes = require('./backend/routes/leaderboard');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -87,12 +88,17 @@ app.get('/admin', (req, res) => {
     res.render('pages/admin', { title: 'Admin Panel', activePage: 'admin', challenge: null });
 });
 
+app.get('/leaderboard', (req, res) => {
+    res.render('pages/leaderboard', { title: 'Liderlik Tablosu', activePage: 'leaderboard', challenge: null });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/challenges', challengeRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
