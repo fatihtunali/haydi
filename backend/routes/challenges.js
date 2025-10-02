@@ -3,6 +3,7 @@ const router = express.Router();
 const {
     getAllChallenges,
     getChallengeById,
+    getChallengeStats,
     createChallenge,
     joinChallenge,
     getCategories,
@@ -18,6 +19,10 @@ const { authenticateToken, optionalAuth } = require('../middleware/auth');
 router.get('/', optionalAuth, getAllChallenges);
 router.get('/categories', getCategories);
 router.get('/stats', getStats);
+
+// Challenge stats (creator only) - Must be before /:id to avoid route conflict
+router.get('/:id/stats', authenticateToken, getChallengeStats);
+
 router.get('/:id', optionalAuth, getChallengeById);
 
 // Protected routes

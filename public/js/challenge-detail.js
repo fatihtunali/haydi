@@ -4,6 +4,8 @@ let isParticipant = false;
 let submissions = [];
 let teams = [];
 let userTeam = null;
+let challengeStats = null;
+let showingStats = false;
 
 // Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', async () => {
@@ -238,11 +240,22 @@ function renderChallengeDetail() {
                     <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;">
                         ${c.creator_username.charAt(0).toUpperCase()}
                     </div>
-                    <div>
+                    <div style="flex: 1;">
                         <div style="font-weight: 600; color: var(--text);">@${c.creator_username}</div>
                         <div style="font-size: 0.85rem; color: var(--text-light);">Meydan Okuma Sahibi</div>
                     </div>
                 </div>
+
+                ${isLoggedIn() && getCurrentUserId() === c.creator_id ? `
+                    <button onclick="toggleStats()" class="btn btn-primary" style="width: 100%; margin-top: 1rem; font-size: 0.9rem;">
+                        📊 İstatistikleri Görüntüle
+                    </button>
+                ` : ''}
+            </div>
+
+            <!-- Stats Section (initially hidden) -->
+            <div id="statsContainer" style="display: none; background: var(--card-bg); padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-top: 1.5rem;">
+                <!-- Stats will be loaded here -->
             </div>
 
             <!-- Share Section -->
@@ -1062,4 +1075,202 @@ async function deleteTeam(teamId) {
     } catch (error) {
         showError(error.message || 'Takım silinemedi');
     }
+}
+
+// ===== İSTATİSTİK FONKSİYONLARI =====
+
+// İstatistikleri aç/kapat
+async function toggleStats() {
+    const statsContainer = document.getElementById('statsContainer');
+
+    if (showingStats) {
+        // Kapat
+        statsContainer.style.display = 'none';
+        showingStats = false;
+    } else {
+        // Aç ve yükle
+        statsContainer.style.display = 'block';
+        showingStats = true;
+
+        if (!challengeStats) {
+            await loadStats();
+        }
+    }
+}
+
+// İstatistikleri yükle
+async function loadStats() {
+    const statsContainer = document.getElementById('statsContainer');
+
+    try {
+        statsContainer.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div><p style="margin-top: 1rem; color: var(--text-light);">İstatistikler yükleniyor...</p></div>';
+
+        const data = await ChallengeAPI.getChallengeStats(currentChallenge.id);
+        challengeStats = data.stats;
+
+        renderStats();
+
+    } catch (error) {
+        console.error('İstatistik yükleme hatası:', error);
+        statsContainer.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <p style="color: var(--danger);">❌ İstatistikler yüklenemedi</p>
+                <button onclick="loadStats()" class="btn btn-secondary" style="margin-top: 1rem; font-size: 0.9rem;">
+                    🔄 Tekrar Dene
+                </button>
+            </div>
+        `;
+    }
+}
+
+// İstatistikleri render et
+function renderStats() {
+    const statsContainer = document.getElementById('statsContainer');
+    const s = challengeStats;
+
+    if (!s) return;
+
+    statsContainer.innerHTML = `
+        <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; color: var(--text);">📊 Challenge İstatistikleri</h3>
+
+        <!-- Özet Metrikler -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <div style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${s.participants.total_participants || 0}</div>
+                <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem;">Toplam Katılımcı</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--success);">${s.participants.completed_participants || 0}</div>
+                <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem;">Tamamlayan</div>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--warning);">${s.submissions.total_submissions || 0}</div>
+                <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem;">Toplam Gönderi</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--success);">${s.submissions.approved_submissions || 0}</div>
+                <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem;">Onaylanan</div>
+            </div>
+        </div>
+
+        <!-- Gönderi Durumu -->
+        <div style="background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 0.75rem;">📝 Gönderi Durumu</div>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                    <span style="color: var(--text-light);">✅ Onaylanan</span>
+                    <span style="color: var(--success); font-weight: 600;">${s.submissions.approved_submissions || 0}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                    <span style="color: var(--text-light);">⏳ Bekleyen</span>
+                    <span style="color: var(--warning); font-weight: 600;">${s.submissions.pending_submissions || 0}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                    <span style="color: var(--text-light);">❌ Reddedilen</span>
+                    <span style="color: var(--danger); font-weight: 600;">${s.submissions.rejected_submissions || 0}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding-top: 0.5rem; border-top: 1px solid var(--border); margin-top: 0.25rem;">
+                    <span style="color: var(--text);">Ortalama Puan</span>
+                    <span style="color: var(--primary); font-weight: 600;">${Math.round(s.submissions.avg_points || 0)}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Günlük Katılım Grafiği -->
+        ${s.dailyParticipation && s.dailyParticipation.length > 0 ? `
+            <div style="background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 0.75rem;">📈 Günlük Katılım (Son 30 Gün)</div>
+                <div id="participationChart"></div>
+            </div>
+        ` : ''}
+
+        <!-- Top Contributors -->
+        ${s.topContributors && s.topContributors.length > 0 ? `
+            <div style="background: var(--bg); padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 0.75rem;">🏆 En Aktif Katılımcılar</div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    ${s.topContributors.slice(0, 5).map((contributor, index) => `
+                        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: var(--card-bg); border-radius: 6px;">
+                            <div style="font-size: 1.25rem; font-weight: bold; color: ${index === 0 ? '#f59e0b' : index === 1 ? '#9ca3af' : index === 2 ? '#d97706' : 'var(--text-light)'};">
+                                ${index + 1}
+                            </div>
+                            ${contributor.avatar_url ? `
+                                <img src="${contributor.avatar_url}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" />
+                            ` : `
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">
+                                    ${contributor.username.charAt(0).toUpperCase()}
+                                </div>
+                            `}
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text);">@${contributor.username}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">${contributor.submission_count} gönderi</div>
+                            </div>
+                            <div style="font-size: 0.9rem; font-weight: 600; color: var(--secondary);">
+                                ${contributor.points_earned} puan
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
+    `;
+
+    // Grafik çiz (eğer veri varsa)
+    if (s.dailyParticipation && s.dailyParticipation.length > 0) {
+        renderParticipationChart(s.dailyParticipation);
+    }
+}
+
+// Basit grafik çiz (SVG ile)
+function renderParticipationChart(data) {
+    const chartContainer = document.getElementById('participationChart');
+    if (!chartContainer || data.length === 0) return;
+
+    const maxCount = Math.max(...data.map(d => d.count), 1);
+    const barWidth = 100 / data.length;
+
+    const svg = `
+        <svg width="100%" height="120" style="margin-top: 0.5rem;">
+            ${data.map((d, i) => {
+                const height = (d.count / maxCount) * 80;
+                const x = i * barWidth;
+                return `
+                    <g>
+                        <rect
+                            x="${x}%"
+                            y="${100 - height}"
+                            width="${barWidth * 0.8}%"
+                            height="${height}"
+                            fill="var(--primary)"
+                            opacity="0.7"
+                            rx="2"
+                        />
+                        <text
+                            x="${x + barWidth * 0.4}%"
+                            y="115"
+                            text-anchor="middle"
+                            font-size="9"
+                            fill="var(--text-light)"
+                        >
+                            ${new Date(d.date).getDate()}
+                        </text>
+                        ${d.count > 0 ? `
+                            <text
+                                x="${x + barWidth * 0.4}%"
+                                y="${95 - height}"
+                                text-anchor="middle"
+                                font-size="10"
+                                font-weight="600"
+                                fill="var(--text)"
+                            >
+                                ${d.count}
+                            </text>
+                        ` : ''}
+                    </g>
+                `;
+            }).join('')}
+        </svg>
+    `;
+
+    chartContainer.innerHTML = svg;
 }

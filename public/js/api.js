@@ -136,6 +136,10 @@ const ChallengeAPI = {
 
     getStats: async () => {
         return apiRequest('/challenges/stats');
+    },
+
+    getChallengeStats: async (id) => {
+        return apiRequest(`/challenges/${id}/stats`);
     }
 };
 

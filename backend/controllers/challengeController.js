@@ -99,6 +99,105 @@ async function getChallengeById(req, res) {
     }
 }
 
+// Challenge istatistikleri (sadece creator için)
+async function getChallengeStats(req, res) {
+    const { id } = req.params;
+
+    try {
+        // Challenge bilgisi ve creator kontrolü
+        const [[challenge]] = await pool.query(
+            'SELECT creator_id, title, start_date, end_date FROM challenges WHERE id = ?',
+            [id]
+        );
+
+        if (!challenge) {
+            return res.status(404).json({ error: 'Challenge bulunamadı' });
+        }
+
+        // Sadece challenge sahibi istatistikleri görebilir
+        if (!req.user || challenge.creator_id !== req.user.id) {
+            return res.status(403).json({ error: 'Bu istatistikleri görme yetkiniz yok' });
+        }
+
+        // Katılımcı istatistikleri
+        const [[participantStats]] = await pool.query(`
+            SELECT
+                COUNT(*) as total_participants,
+                COUNT(CASE WHEN status = 'aktif' THEN 1 END) as active_participants,
+                COUNT(CASE WHEN status = 'tamamlandi' THEN 1 END) as completed_participants,
+                COALESCE(SUM(points_earned), 0) as total_points_earned
+            FROM participants
+            WHERE challenge_id = ?
+        `, [id]);
+
+        // Gönderi istatistikleri
+        const [[submissionStats]] = await pool.query(`
+            SELECT
+                COUNT(*) as total_submissions,
+                COUNT(CASE WHEN status = 'onaylandi' THEN 1 END) as approved_submissions,
+                COUNT(CASE WHEN status = 'beklemede' THEN 1 END) as pending_submissions,
+                COUNT(CASE WHEN status = 'reddedildi' THEN 1 END) as rejected_submissions,
+                COALESCE(AVG(CASE WHEN status = 'onaylandi' THEN points_awarded END), 0) as avg_points
+            FROM submissions
+            WHERE challenge_id = ?
+        `, [id]);
+
+        // Günlük katılım trendi (son 30 gün)
+        const [dailyParticipation] = await pool.query(`
+            SELECT
+                DATE(joined_at) as date,
+                COUNT(*) as count
+            FROM participants
+            WHERE challenge_id = ? AND joined_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY DATE(joined_at)
+            ORDER BY date ASC
+        `, [id]);
+
+        // Günlük gönderi trendi (son 30 gün)
+        const [dailySubmissions] = await pool.query(`
+            SELECT
+                DATE(created_at) as date,
+                COUNT(*) as count,
+                COUNT(CASE WHEN status = 'onaylandi' THEN 1 END) as approved_count
+            FROM submissions
+            WHERE challenge_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY DATE(created_at)
+            ORDER BY date ASC
+        `, [id]);
+
+        // En aktif katılımcılar (top 10)
+        const [topContributors] = await pool.query(`
+            SELECT
+                u.id,
+                u.username,
+                u.avatar_url,
+                p.points_earned,
+                COUNT(s.id) as submission_count
+            FROM participants p
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN submissions s ON s.user_id = u.id AND s.challenge_id = ?
+            WHERE p.challenge_id = ?
+            GROUP BY u.id
+            ORDER BY p.points_earned DESC, submission_count DESC
+            LIMIT 10
+        `, [id, id]);
+
+        res.json({
+            stats: {
+                participants: participantStats,
+                submissions: submissionStats,
+                dailyParticipation,
+                dailySubmissions,
+                topContributors
+            }
+        });
+
+    } catch (error) {
+        console.error('Challenge istatistik hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 // Yeni challenge oluştur
 async function createChallenge(req, res) {
     const {
@@ -419,6 +518,7 @@ async function submitChallengeForApproval(req, res) {
 module.exports = {
     getAllChallenges,
     getChallengeById,
+    getChallengeStats,
     createChallenge,
     joinChallenge,
     getCategories,
