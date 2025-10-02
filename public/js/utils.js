@@ -165,11 +165,17 @@ function renderSubmission(s, showChallengeBadge = false) {
                             <div style="font-size: 0.8rem; color: var(--text-light);">${timeAgo}</div>
                         </div>
                     </div>
-                    ${s.user_id !== getCurrentUserId() && isLoggedIn() && !s.is_following ? `
-                        <button onclick="event.stopPropagation(); quickFollow(${s.user_id}, this)" class="quick-follow-btn" style="padding: 0.4rem 1rem; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-                            Takip Et
-                        </button>
-                    ` : ''}
+                    ${s.user_id !== getCurrentUserId() && isLoggedIn() ? (
+                        s.is_following ? `
+                            <button onclick="event.stopPropagation(); quickUnfollow(${s.user_id}, this)" class="quick-unfollow-btn" style="padding: 0.4rem 1rem; background: transparent; border: 1px solid #ef4444; border-radius: 8px; color: #ef4444; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='#ef4444'">
+                                Takibi Bırak
+                            </button>
+                        ` : `
+                            <button onclick="event.stopPropagation(); quickFollow(${s.user_id}, this)" class="quick-follow-btn" style="padding: 0.4rem 1rem; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                                Takip Et
+                            </button>
+                        `
+                    ) : ''}
                 </div>
 
                 <!-- Challenge Badge -->
@@ -327,12 +333,19 @@ async function quickFollow(userId, buttonElement) {
         // Butonu devre dışı bırak
         buttonElement.disabled = true;
         buttonElement.style.opacity = '0.5';
+        const originalText = buttonElement.textContent;
         buttonElement.textContent = 'Takip Ediliyor...';
 
         await FollowAPI.follow(userId);
 
-        // Butonu gizle (artık takip ediyoruz)
-        buttonElement.style.display = 'none';
+        // Butonu "Takibi Bırak" olarak değiştir
+        buttonElement.textContent = 'Takibi Bırak';
+        buttonElement.style.background = 'transparent';
+        buttonElement.style.border = '1px solid #ef4444';
+        buttonElement.style.color = '#ef4444';
+        buttonElement.onclick = (e) => { e.stopPropagation(); quickUnfollow(userId, buttonElement); };
+        buttonElement.disabled = false;
+        buttonElement.style.opacity = '1';
 
     } catch (error) {
         console.error('Takip hatası:', error);
@@ -342,5 +355,40 @@ async function quickFollow(userId, buttonElement) {
         buttonElement.disabled = false;
         buttonElement.style.opacity = '1';
         buttonElement.textContent = 'Takip Et';
+    }
+}
+
+// Hızlı takibi bırak (gönderilerdeki buton için)
+async function quickUnfollow(userId, buttonElement) {
+    if (!isLoggedIn()) {
+        window.location.href = '/login';
+        return;
+    }
+
+    try {
+        // Butonu devre dışı bırak
+        buttonElement.disabled = true;
+        buttonElement.style.opacity = '0.5';
+        buttonElement.textContent = 'İşleniyor...';
+
+        await FollowAPI.unfollow(userId);
+
+        // Butonu "Takip Et" olarak değiştir
+        buttonElement.textContent = 'Takip Et';
+        buttonElement.style.background = '#3b82f6';
+        buttonElement.style.border = 'none';
+        buttonElement.style.color = 'white';
+        buttonElement.onclick = (e) => { e.stopPropagation(); quickFollow(userId, buttonElement); };
+        buttonElement.disabled = false;
+        buttonElement.style.opacity = '1';
+
+    } catch (error) {
+        console.error('Takibi bırakma hatası:', error);
+        alert('Takibi bırakma işlemi başarısız: ' + (error.message || 'Bilinmeyen hata'));
+
+        // Butonu eski haline getir
+        buttonElement.disabled = false;
+        buttonElement.style.opacity = '1';
+        buttonElement.textContent = 'Takibi Bırak';
     }
 }
