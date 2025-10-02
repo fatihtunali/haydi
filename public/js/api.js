@@ -278,3 +278,37 @@ const BadgeAPI = {
         return apiRequest(`/badges/${badgeId}/stats`);
     }
 };
+
+// Follow API
+const FollowAPI = {
+    follow: async (userId) => {
+        return apiRequest(`/follows/users/${userId}/follow`, {
+            method: 'POST'
+        });
+    },
+
+    unfollow: async (userId) => {
+        return apiRequest(`/follows/users/${userId}/unfollow`, {
+            method: 'DELETE'
+        });
+    },
+
+    getFollowers: async (userId, params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return apiRequest(`/follows/users/${userId}/followers?${query}`);
+    },
+
+    getFollowing: async (userId, params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return apiRequest(`/follows/users/${userId}/following?${query}`);
+    },
+
+    getStats: async (userId) => {
+        return apiRequest(`/follows/users/${userId}/stats`);
+    },
+
+    getFollowingFeed: async (params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return apiRequest(`/submissions/following-feed?${query}`);
+    }
+};

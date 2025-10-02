@@ -1,13 +1,51 @@
 // Ana sayfa için JavaScript
+let activeFeedTab = 'discover'; // 'discover' veya 'following'
 
 // Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', async () => {
+    // Feed tabs oluştur
+    renderFeedTabs();
+
     await loadFeed();
     await loadTeamChallenges(); // Takım challenge'larını yükle
     await loadCategories();
     await loadFeaturedChallenges();
     await loadStats();
 });
+
+// Feed tabs render
+function renderFeedTabs() {
+    const feedTabsContainer = document.getElementById('feedTabs');
+    if (!feedTabsContainer) return;
+
+    const isLoggedIn = !!localStorage.getItem('token');
+
+    feedTabsContainer.innerHTML = `
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border);">
+            <button
+                onclick="switchFeedTab('discover')"
+                class="feed-tab ${activeFeedTab === 'discover' ? 'active' : ''}"
+                style="padding: 1rem 1.5rem; background: none; border: none; border-bottom: 3px solid ${activeFeedTab === 'discover' ? 'var(--primary)' : 'transparent'}; color: ${activeFeedTab === 'discover' ? 'var(--primary)' : 'var(--text-light)'}; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                🌍 Keşfet
+            </button>
+            ${isLoggedIn ? `
+                <button
+                    onclick="switchFeedTab('following')"
+                    class="feed-tab ${activeFeedTab === 'following' ? 'active' : ''}"
+                    style="padding: 1rem 1.5rem; background: none; border: none; border-bottom: 3px solid ${activeFeedTab === 'following' ? 'var(--primary)' : 'transparent'}; color: ${activeFeedTab === 'following' ? 'var(--primary)' : 'var(--text-light)'}; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    👥 Takip Ettiklerim
+                </button>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Feed tab değiştir
+async function switchFeedTab(tab) {
+    activeFeedTab = tab;
+    renderFeedTabs();
+    await loadFeed();
+}
 
 // Instagram-style feed yükle
 async function loadFeed() {
@@ -17,11 +55,20 @@ async function loadFeed() {
     showLoading(feedContainer);
 
     try {
-        const data = await SubmissionAPI.getFeed({ limit: 12 });
+        let data;
+        if (activeFeedTab === 'following') {
+            data = await FollowAPI.getFollowingFeed({ limit: 12 });
+        } else {
+            data = await SubmissionAPI.getFeed({ limit: 12 });
+        }
+
         const submissions = data.submissions || [];
 
         if (submissions.length === 0) {
-            showEmptyState(feedContainer, '📸', 'Henüz gönderi yok');
+            const emptyMessage = activeFeedTab === 'following'
+                ? 'Takip ettiğiniz kişilerden henüz gönderi yok'
+                : 'Henüz gönderi yok';
+            showEmptyState(feedContainer, '📸', emptyMessage);
             return;
         }
 

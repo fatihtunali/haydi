@@ -442,6 +442,72 @@ async function getFeed(req, res) {
     }
 }
 
+// Following Feed - Takip edilen kullanıcıların gönderileri
+async function getFollowingFeed(req, res) {
+    const { limit = 20, offset = 0 } = req.query;
+
+    if (!req.user) {
+        return res.status(401).json({ error: 'Giriş yapmalısınız' });
+    }
+
+    try {
+        const [submissions] = await pool.query(`
+            SELECT
+                s.id,
+                s.challenge_id,
+                s.user_id,
+                s.content,
+                s.location,
+                s.media_url,
+                s.media_type,
+                s.likes_count,
+                s.created_at,
+                u.username,
+                u.avatar_url,
+                u.full_name,
+                c.title as challenge_title,
+                c.difficulty as challenge_difficulty,
+                cat.name as category_name,
+                cat.slug as category_slug,
+                cat.icon as category_icon,
+                COUNT(DISTINCT com.id) as comments_count
+            FROM submissions s
+            JOIN users u ON s.user_id = u.id
+            JOIN challenges c ON s.challenge_id = c.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            LEFT JOIN comments com ON s.id = com.submission_id
+            WHERE s.status = 'onaylandi'
+              AND s.user_id IN (
+                  SELECT following_id FROM follows WHERE follower_id = ?
+              )
+            GROUP BY s.id
+            ORDER BY s.created_at DESC
+            LIMIT ? OFFSET ?
+        `, [req.user.id, parseInt(limit), parseInt(offset)]);
+
+        // Beğenileri kontrol et
+        const submissionIds = submissions.map(s => s.id);
+        if (submissionIds.length > 0) {
+            const [likes] = await pool.query(`
+                SELECT submission_id
+                FROM likes
+                WHERE user_id = ? AND submission_id IN (?)
+            `, [req.user.id, submissionIds]);
+
+            const likedIds = new Set(likes.map(l => l.submission_id));
+            submissions.forEach(s => {
+                s.is_liked_by_user = likedIds.has(s.id);
+            });
+        }
+
+        res.json({ submissions });
+
+    } catch (error) {
+        console.error('Following feed hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 module.exports = {
     getSubmissions,
     createSubmission,
@@ -449,5 +515,6 @@ module.exports = {
     addComment,
     getComments,
     deleteSubmission,
-    getFeed
+    getFeed,
+    getFollowingFeed
 };

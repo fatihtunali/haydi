@@ -7,7 +7,8 @@ const {
     addComment,
     getComments,
     deleteSubmission,
-    getFeed
+    getFeed,
+    getFollowingFeed
 } = require('../controllers/submissionController');
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
@@ -15,6 +16,9 @@ const { upload } = require('../middleware/upload');
 // Feed - Popüler gönderiler
 console.log('📍 Registering /feed route');
 router.get('/feed', optionalAuth, getFeed);
+
+// Following Feed - Takip edilenlerin gönderileri
+router.get('/following-feed', authenticateToken, getFollowingFeed);
 
 // Challenge submissions
 router.get('/challenge/:challengeId', optionalAuth, getSubmissions);

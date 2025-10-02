@@ -6,6 +6,7 @@ let userSubmissions = [];
 let userTeams = [];
 let myChallenges = []; // Kullanıcının oluşturduğu challenge'lar
 let userBadges = []; // Kullanıcının badge'leri
+let followStats = null; // Takipçi/takip edilen sayıları
 let activeTab = 'info'; // 'info', 'challenges', 'submissions', 'teams', 'created-challenges'
 
 // Global refresh fonksiyonu - diğer sayfalarda takım değişikliklerinden sonra çağrılabilir
@@ -53,6 +54,7 @@ async function loadProfile() {
         await loadUserTeams();
         await loadMyChallenges();
         await loadUserBadges();
+        await loadFollowStats();
 
         // Profil HTML'ini oluştur
         renderProfile();
@@ -97,18 +99,26 @@ function renderProfile() {
                     </div>
 
                     <!-- İstatistikler -->
-                    <div style="display: flex; gap: 2rem;">
-                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.5rem; border-radius: 12px; backdrop-filter: blur(10px);">
-                            <div style="font-size: 28px; font-weight: bold;">${user.points || 0}</div>
-                            <div style="font-size: 14px; opacity: 0.9;">Puan</div>
+                    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 24px; font-weight: bold;">${user.points || 0}</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Puan</div>
                         </div>
-                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.5rem; border-radius: 12px; backdrop-filter: blur(10px);">
-                            <div style="font-size: 28px; font-weight: bold;" id="challengeCount">0</div>
-                            <div style="font-size: 14px; opacity: 0.9;">Meydan Okuma</div>
+                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 24px; font-weight: bold;" id="challengeCount">0</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Challenge</div>
                         </div>
-                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.5rem; border-radius: 12px; backdrop-filter: blur(10px);">
-                            <div style="font-size: 28px; font-weight: bold;">${userBadges.filter(b => b.earned).length}</div>
-                            <div style="font-size: 14px; opacity: 0.9;">Rozet</div>
+                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px); cursor: pointer;" onclick="alert('Takipçiler listesi yakında!')">
+                            <div style="font-size: 24px; font-weight: bold;">${followStats ? followStats.follower_count : 0}</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Takipçi</div>
+                        </div>
+                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px); cursor: pointer;" onclick="alert('Takip edilenler listesi yakında!')">
+                            <div style="font-size: 24px; font-weight: bold;">${followStats ? followStats.following_count : 0}</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Takip</div>
+                        </div>
+                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 24px; font-weight: bold;">${userBadges.filter(b => b.earned).length}</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Rozet</div>
                         </div>
                     </div>
                 </div>
@@ -970,6 +980,17 @@ async function loadUserBadges() {
     } catch (error) {
         console.error('Badge\'ler yüklenemedi:', error);
         userBadges = [];
+    }
+}
+
+// Takipçi/takip edilen sayılarını yükle
+async function loadFollowStats() {
+    try {
+        const data = await FollowAPI.getStats(currentUser.id);
+        followStats = data;
+    } catch (error) {
+        console.error('Follow stats yüklenemedi:', error);
+        followStats = { follower_count: 0, following_count: 0, is_following: false, is_follower: false };
     }
 }
 
