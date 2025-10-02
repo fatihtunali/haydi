@@ -1,5 +1,6 @@
 // Admin Panel
 let activeTab = 'dashboard'; // dashboard, submissions, users, challenges
+let submissionsFilter = ''; // '', 'beklemede', 'onaylandi', 'reddedildi'
 let dashboardData = null;
 let submissionsData = [];
 let usersData = [];
@@ -101,7 +102,7 @@ async function switchAdminTab(tab) {
 
     // Veriyi yükle
     if (tab === 'submissions' && submissionsData.length === 0) {
-        await loadSubmissions();
+        await loadSubmissions('beklemede'); // İlk açılışta bekleyen gönderiler
     } else if (tab === 'users' && usersData.length === 0) {
         await loadUsers();
     } else if (tab === 'challenges' && challengesData.length === 0) {
@@ -196,8 +197,11 @@ function renderDashboard() {
 }
 
 // Submissions yükle
-async function loadSubmissions(status = 'beklemede') {
-    const response = await fetch(`/api/admin/submissions?status=${status}`, {
+async function loadSubmissions(status = '') {
+    submissionsFilter = status;
+    const url = status ? `/api/admin/submissions?status=${status}` : '/api/admin/submissions';
+
+    const response = await fetch(url, {
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -211,16 +215,33 @@ async function loadSubmissions(status = 'beklemede') {
 
 // Submissions render
 function renderSubmissions() {
+    const filterButtons = `
+        <div style="background: var(--card-bg); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <button onclick="filterSubmissions('')" class="btn ${submissionsFilter === '' ? 'btn-primary' : 'btn-secondary'}">
+                📋 Tümü
+            </button>
+            <button onclick="filterSubmissions('beklemede')" class="btn ${submissionsFilter === 'beklemede' ? 'btn-primary' : 'btn-secondary'}">
+                ⏳ Bekleyen (${dashboardData.stats.pending_submissions || 0})
+            </button>
+            <button onclick="filterSubmissions('onaylandi')" class="btn ${submissionsFilter === 'onaylandi' ? 'btn-primary' : 'btn-secondary'}">
+                ✅ Onaylananlar
+            </button>
+            <button onclick="filterSubmissions('reddedildi')" class="btn ${submissionsFilter === 'reddedildi' ? 'btn-primary' : 'btn-secondary'}">
+                ❌ Reddedilenler
+            </button>
+        </div>
+    `;
+
     if (submissionsData.length === 0) {
-        return `
+        return filterButtons + `
             <div class="empty-state">
                 <div class="empty-icon">📭</div>
-                <p>Bekleyen gönderi yok</p>
+                <p>${submissionsFilter === '' ? 'Hiç gönderi yok' : submissionsFilter === 'beklemede' ? 'Bekleyen gönderi yok' : submissionsFilter === 'onaylandi' ? 'Onaylanmış gönderi yok' : 'Reddedilmiş gönderi yok'}</p>
             </div>
         `;
     }
 
-    return `
+    return filterButtons + `
         <div style="display: grid; gap: 1.5rem;">
             ${submissionsData.map(s => {
                 // AI önerisi rengini belirle
@@ -288,12 +309,26 @@ function renderSubmissions() {
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                <button onclick="approveSubmission(${s.id})" class="btn btn-primary" style="white-space: nowrap;">
-                                    ✅ Onayla
-                                </button>
-                                <button onclick="rejectSubmission(${s.id})" class="btn btn-danger" style="white-space: nowrap;">
-                                    ❌ Reddet
-                                </button>
+                                ${s.status !== 'onaylandi' ? `
+                                    <button onclick="approveSubmission(${s.id})" class="btn btn-primary" style="white-space: nowrap;">
+                                        ✅ Onayla
+                                    </button>
+                                ` : ''}
+                                ${s.status === 'beklemede' ? `
+                                    <button onclick="rejectSubmission(${s.id})" class="btn btn-danger" style="white-space: nowrap;">
+                                        ❌ Reddet
+                                    </button>
+                                ` : ''}
+                                ${s.status === 'onaylandi' ? `
+                                    <div style="padding: 0.75rem; background: #10b98115; border: 1px solid #10b98140; border-radius: 8px; text-align: center; color: #10b981; font-weight: 600;">
+                                        ✅ Onaylandı
+                                    </div>
+                                ` : ''}
+                                ${s.status === 'reddedildi' ? `
+                                    <div style="padding: 0.75rem; background: #ef444415; border: 1px solid #ef444440; border-radius: 8px; text-align: center; color: #ef4444; font-weight: 600;">
+                                        ❌ Reddedildi
+                                    </div>
+                                ` : ''}
                                 <button onclick="deleteSubmissionAdmin(${s.id})" class="btn btn-secondary" style="white-space: nowrap;">
                                     🗑️ Sil
                                 </button>
@@ -304,6 +339,17 @@ function renderSubmissions() {
             }).join('')}
         </div>
     `;
+}
+
+// Submissions filtrele
+async function filterSubmissions(status) {
+    try {
+        await loadSubmissions(status);
+        renderAdminTabContent();
+    } catch (error) {
+        console.error('Filtreleme hatası:', error);
+        showError('Gönderiler yüklenemedi');
+    }
 }
 
 // Submission onayla
@@ -324,7 +370,7 @@ async function approveSubmission(id) {
         const data = await response.json();
         showSuccess(`Gönderi onaylandı! ${data.points_awarded} puan verildi.`);
 
-        await loadSubmissions();
+        await loadSubmissions(submissionsFilter);
         renderAdminTabContent();
 
     } catch (error) {
@@ -351,7 +397,7 @@ async function rejectSubmission(id) {
 
         showSuccess('Gönderi reddedildi');
 
-        await loadSubmissions();
+        await loadSubmissions(submissionsFilter);
         renderAdminTabContent();
 
     } catch (error) {
@@ -375,7 +421,7 @@ async function deleteSubmissionAdmin(id) {
 
         showSuccess('Gönderi silindi');
 
-        await loadSubmissions();
+        await loadSubmissions(submissionsFilter);
         renderAdminTabContent();
 
     } catch (error) {
