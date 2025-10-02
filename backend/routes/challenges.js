@@ -6,7 +6,11 @@ const {
     createChallenge,
     joinChallenge,
     getCategories,
-    getStats
+    getStats,
+    getUserChallenges,
+    updateChallenge,
+    deleteChallenge,
+    submitChallengeForApproval
 } = require('../controllers/challengeController');
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
 
@@ -19,5 +23,13 @@ router.get('/:id', optionalAuth, getChallengeById);
 // Protected routes
 router.post('/', authenticateToken, createChallenge);
 router.post('/:id/join', authenticateToken, joinChallenge);
+
+// User's own challenges
+router.get('/my/challenges', authenticateToken, getUserChallenges);
+
+// Challenge management (owner only)
+router.put('/:id', authenticateToken, updateChallenge);
+router.delete('/:id', authenticateToken, deleteChallenge);
+router.post('/:id/submit', authenticateToken, submitChallengeForApproval);
 
 module.exports = router;

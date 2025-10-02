@@ -13,7 +13,10 @@ const {
     getChallengeDetail,
     getCategories,
     updateChallenge,
-    deleteChallenge
+    deleteChallenge,
+    getPendingChallenges,
+    approveChallenge,
+    rejectChallenge
 } = require('../controllers/adminController');
 const { isAdmin } = require('../middleware/auth');
 
@@ -36,9 +39,12 @@ router.delete('/users/:id', deleteUser);
 
 // Challenge yönetimi
 router.get('/challenges', getAllChallengesAdmin);
+router.get('/challenges/pending', getPendingChallenges);
 router.get('/challenges/:id', getChallengeDetail);
 router.get('/categories', getCategories);
 router.patch('/challenges/:id', updateChallenge);
 router.delete('/challenges/:id', deleteChallenge);
+router.post('/challenges/:id/approve', approveChallenge);
+router.post('/challenges/:id/reject', rejectChallenge);
 
 module.exports = router;

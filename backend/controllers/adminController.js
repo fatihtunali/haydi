@@ -596,6 +596,110 @@ async function deleteChallenge(req, res) {
     }
 }
 
+// Bekleyen challenge'ları listele
+async function getPendingChallenges(req, res) {
+    try {
+        const [challenges] = await pool.query(`
+            SELECT
+                c.*,
+                cat.name as category_name,
+                cat.icon as category_icon,
+                u.username as creator_username,
+                u.email as creator_email
+            FROM challenges c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            LEFT JOIN users u ON c.creator_id = u.id
+            WHERE c.status = 'beklemede'
+            ORDER BY c.created_at DESC
+        `);
+
+        res.json({ challenges });
+
+    } catch (error) {
+        console.error('Bekleyen challenge\'ları getirme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+// Challenge'ı onayla (beklemede → aktif)
+async function approveChallenge(req, res) {
+    const { id } = req.params;
+
+    try {
+        const [[challenge]] = await pool.query(
+            'SELECT status FROM challenges WHERE id = ?',
+            [id]
+        );
+
+        if (!challenge) {
+            return res.status(404).json({ error: 'Challenge bulunamadı' });
+        }
+
+        if (challenge.status !== 'beklemede') {
+            return res.status(400).json({ error: 'Sadece beklemedeki challenge\'lar onaylanabilir' });
+        }
+
+        await pool.query(
+            'UPDATE challenges SET status = ? WHERE id = ?',
+            ['aktif', id]
+        );
+
+        res.json({ message: 'Challenge onaylandı ve aktif hale getirildi!' });
+
+    } catch (error) {
+        console.error('Challenge onaylama hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+// Challenge'ı reddet (beklemede → taslak)
+async function rejectChallenge(req, res) {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    try {
+        const [[challenge]] = await pool.query(
+            'SELECT status, creator_id FROM challenges WHERE id = ?',
+            [id]
+        );
+
+        if (!challenge) {
+            return res.status(404).json({ error: 'Challenge bulunamadı' });
+        }
+
+        if (challenge.status !== 'beklemede') {
+            return res.status(400).json({ error: 'Sadece beklemedeki challenge\'lar reddedilebilir' });
+        }
+
+        // Status'u taslak'a geri al
+        await pool.query(
+            'UPDATE challenges SET status = ? WHERE id = ?',
+            ['taslak', id]
+        );
+
+        // Opsiyonel: Kullanıcıya bildirim gönder
+        if (reason) {
+            await pool.query(
+                `INSERT INTO notifications (user_id, type, title, message, link)
+                 VALUES (?, ?, ?, ?, ?)`,
+                [
+                    challenge.creator_id,
+                    'challenge_rejected',
+                    '❌ Challenge Reddedildi',
+                    `Challenge'ınız reddedildi. Sebep: ${reason}`,
+                    `/edit-challenge/${id}`
+                ]
+            );
+        }
+
+        res.json({ message: 'Challenge reddedildi ve taslak durumuna alındı' });
+
+    } catch (error) {
+        console.error('Challenge reddetme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 module.exports = {
     getDashboard,
     getAllSubmissions,
@@ -609,5 +713,8 @@ module.exports = {
     getChallengeDetail,
     getCategories,
     updateChallenge,
-    deleteChallenge
+    deleteChallenge,
+    getPendingChallenges,
+    approveChallenge,
+    rejectChallenge
 };

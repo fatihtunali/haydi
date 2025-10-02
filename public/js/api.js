@@ -77,6 +77,29 @@ const ChallengeAPI = {
         });
     },
 
+    update: async (id, challengeData) => {
+        return apiRequest(`/challenges/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(challengeData)
+        });
+    },
+
+    delete: async (id) => {
+        return apiRequest(`/challenges/${id}`, {
+            method: 'DELETE'
+        });
+    },
+
+    submit: async (id) => {
+        return apiRequest(`/challenges/${id}/submit`, {
+            method: 'POST'
+        });
+    },
+
+    getMyChallenges: async () => {
+        return apiRequest('/challenges/my/challenges');
+    },
+
     join: async (id) => {
         return apiRequest(`/challenges/${id}/join`, {
             method: 'POST'

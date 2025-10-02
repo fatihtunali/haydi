@@ -128,7 +128,7 @@ async function createChallenge(req, res) {
                 points, start_date, end_date, max_participants, rules,
                 prize_description, is_team_based, min_team_size, max_team_size,
                 status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif')
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'taslak')
         `, [
             title,
             description,
@@ -142,12 +142,12 @@ async function createChallenge(req, res) {
             rules || null,
             prize_description || null,
             is_team_based || false,
-            min_team_size || 1,
-            max_team_size || 1
+            min_team_size || null,
+            max_team_size || null
         ]);
 
         res.status(201).json({
-            message: 'Challenge oluşturuldu',
+            message: 'Challenge taslak olarak kaydedildi. Onaya göndermek için düzenleyin.',
             challenge_id: result.insertId
         });
 
@@ -239,11 +239,192 @@ async function getStats(req, res) {
     }
 }
 
+// Kullanıcının kendi challenge'larını getir
+async function getUserChallenges(req, res) {
+    try {
+        const [challenges] = await pool.query(`
+            SELECT
+                c.*,
+                cat.name as category_name,
+                cat.slug as category_slug,
+                cat.icon as category_icon,
+                COUNT(DISTINCT p.id) as participant_count
+            FROM challenges c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            LEFT JOIN participants p ON c.id = p.challenge_id AND p.status = 'aktif'
+            WHERE c.creator_id = ?
+            GROUP BY c.id
+            ORDER BY c.created_at DESC
+        `, [req.user.id]);
+
+        res.json({ challenges });
+
+    } catch (error) {
+        console.error('Kullanıcı challenge\'ları getirme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+// Challenge düzenle
+async function updateChallenge(req, res) {
+    const { id } = req.params;
+    const {
+        title,
+        description,
+        category_id,
+        difficulty,
+        points,
+        start_date,
+        end_date,
+        max_participants,
+        rules,
+        prize_description,
+        is_team_based,
+        min_team_size,
+        max_team_size
+    } = req.body;
+
+    try {
+        // Challenge sahibi mi kontrol et
+        const [[challenge]] = await pool.query(
+            'SELECT creator_id, status FROM challenges WHERE id = ?',
+            [id]
+        );
+
+        if (!challenge) {
+            return res.status(404).json({ error: 'Challenge bulunamadı' });
+        }
+
+        if (challenge.creator_id !== req.user.id) {
+            return res.status(403).json({ error: 'Bu challenge\'ı düzenleme yetkiniz yok' });
+        }
+
+        // Aktif veya bitti durumundaki challenge'lar düzenlenemez
+        if (challenge.status === 'aktif' || challenge.status === 'bitti') {
+            return res.status(400).json({ error: 'Aktif veya bitmiş challenge\'lar düzenlenemez' });
+        }
+
+        await pool.query(`
+            UPDATE challenges SET
+                title = ?,
+                description = ?,
+                category_id = ?,
+                difficulty = ?,
+                points = ?,
+                start_date = ?,
+                end_date = ?,
+                max_participants = ?,
+                rules = ?,
+                prize_description = ?,
+                is_team_based = ?,
+                min_team_size = ?,
+                max_team_size = ?
+            WHERE id = ?
+        `, [
+            title,
+            description,
+            category_id || null,
+            difficulty || 'orta',
+            points || 100,
+            start_date,
+            end_date,
+            max_participants || null,
+            rules || null,
+            prize_description || null,
+            is_team_based || false,
+            min_team_size || null,
+            max_team_size || null,
+            id
+        ]);
+
+        res.json({ message: 'Challenge güncellendi' });
+
+    } catch (error) {
+        console.error('Challenge güncelleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+// Challenge sil
+async function deleteChallenge(req, res) {
+    const { id } = req.params;
+
+    try {
+        // Challenge sahibi mi kontrol et
+        const [[challenge]] = await pool.query(
+            'SELECT creator_id, status FROM challenges WHERE id = ?',
+            [id]
+        );
+
+        if (!challenge) {
+            return res.status(404).json({ error: 'Challenge bulunamadı' });
+        }
+
+        if (challenge.creator_id !== req.user.id) {
+            return res.status(403).json({ error: 'Bu challenge\'ı silme yetkiniz yok' });
+        }
+
+        // Aktif veya bitti durumundaki challenge'lar silinemez
+        if (challenge.status === 'aktif' || challenge.status === 'bitti') {
+            return res.status(400).json({ error: 'Aktif veya bitmiş challenge\'lar silinemez. İptal edebilirsiniz.' });
+        }
+
+        await pool.query('DELETE FROM challenges WHERE id = ?', [id]);
+
+        res.json({ message: 'Challenge silindi' });
+
+    } catch (error) {
+        console.error('Challenge silme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+// Challenge'ı onaya gönder
+async function submitChallengeForApproval(req, res) {
+    const { id } = req.params;
+
+    try {
+        // Challenge sahibi mi kontrol et
+        const [[challenge]] = await pool.query(
+            'SELECT creator_id, status FROM challenges WHERE id = ?',
+            [id]
+        );
+
+        if (!challenge) {
+            return res.status(404).json({ error: 'Challenge bulunamadı' });
+        }
+
+        if (challenge.creator_id !== req.user.id) {
+            return res.status(403).json({ error: 'Bu challenge\'ı gönderme yetkiniz yok' });
+        }
+
+        if (challenge.status !== 'taslak') {
+            return res.status(400).json({ error: 'Sadece taslak challenge\'lar onaya gönderilebilir' });
+        }
+
+        // Status'u beklemede yap
+        await pool.query(
+            'UPDATE challenges SET status = ? WHERE id = ?',
+            ['beklemede', id]
+        );
+
+        res.json({ message: 'Challenge onay için gönderildi!' });
+
+    } catch (error) {
+        console.error('Challenge onaya gönderme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 module.exports = {
     getAllChallenges,
     getChallengeById,
     createChallenge,
     joinChallenge,
     getCategories,
-    getStats
+    getStats,
+    getUserChallenges,
+    updateChallenge,
+    deleteChallenge,
+    submitChallengeForApproval
 };
