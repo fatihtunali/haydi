@@ -14,6 +14,14 @@ function updateAuthButtons() {
         const displayName = user.full_name || user.username;
 
         authButtons.innerHTML = `
+            <!-- Bildirimler -->
+            <div style="position: relative;">
+                <button onclick="toggleNotifications()" style="display: flex; align-items: center; padding: 0.35rem 0.5rem; background: transparent; color: var(--text); border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 1rem; transition: all 0.2s; position: relative;" onmouseover="this.style.background='rgba(0,0,0,0.03)';" onmouseout="this.style.background='transparent';">
+                    🔔
+                    <span id="notificationBadge" style="position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border-radius: 10px; padding: 0.15rem 0.35rem; font-size: 0.65rem; font-weight: 700; display: none; min-width: 18px; text-align: center;"></span>
+                </button>
+            </div>
+
             <!-- Puan -->
             <div style="display: flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.6rem; background: rgba(16, 185, 129, 0.08); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
                 <span style="font-size: 0.9rem;">🏆</span>

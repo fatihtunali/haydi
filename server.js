@@ -12,6 +12,7 @@ const submissionRoutes = require('./backend/routes/submissions');
 const adminRoutes = require('./backend/routes/admin');
 const teamRoutes = require('./backend/routes/teams');
 const leaderboardRoutes = require('./backend/routes/leaderboard');
+const notificationRoutes = require('./backend/routes/notifications');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -107,6 +108,7 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

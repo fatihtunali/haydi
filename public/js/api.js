@@ -230,3 +230,32 @@ const LeaderboardAPI = {
         return apiRequest(`/leaderboard/my-rank?period=${period}`);
     }
 };
+
+// Notification API
+const NotificationAPI = {
+    getAll: async (limit = 20, offset = 0) => {
+        return apiRequest(`/notifications?limit=${limit}&offset=${offset}`);
+    },
+
+    getUnreadCount: async () => {
+        return apiRequest('/notifications/unread-count');
+    },
+
+    markAsRead: async (id) => {
+        return apiRequest(`/notifications/${id}/read`, {
+            method: 'PUT'
+        });
+    },
+
+    markAllAsRead: async () => {
+        return apiRequest('/notifications/mark-all-read', {
+            method: 'PUT'
+        });
+    },
+
+    delete: async (id) => {
+        return apiRequest(`/notifications/${id}`, {
+            method: 'DELETE'
+        });
+    }
+};

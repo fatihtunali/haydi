@@ -1,5 +1,6 @@
 const { pool } = require('../config/database');
 const { moderateSubmission, calculatePoints } = require('../services/aiModeration');
+const { createNotification } = require('./notificationController');
 
 // Challenge için submission'ları listele
 async function getSubmissions(req, res) {
@@ -228,6 +229,22 @@ async function toggleLike(req, res) {
                     [id]
                 );
 
+                // Submission sahibine bildirim gönder (kendisi beğenmediyse)
+                const [[submission]] = await connection.query(
+                    'SELECT user_id, challenge_id FROM submissions WHERE id = ?',
+                    [id]
+                );
+
+                if (submission && submission.user_id !== req.user.id) {
+                    await createNotification(
+                        submission.user_id,
+                        'like',
+                        '❤️ Yeni Beğeni',
+                        `${req.user.username} gönderini beğendi`,
+                        `/challenge/${submission.challenge_id}`
+                    );
+                }
+
                 await connection.commit();
                 res.json({ message: 'Beğenildi', liked: true });
             }
@@ -266,6 +283,22 @@ async function addComment(req, res) {
             JOIN users u ON c.user_id = u.id
             WHERE c.id = ?
         `, [result.insertId]);
+
+        // Submission sahibine bildirim gönder (kendisi yorum yapmadıysa)
+        const [[submission]] = await pool.query(
+            'SELECT user_id, challenge_id FROM submissions WHERE id = ?',
+            [id]
+        );
+
+        if (submission && submission.user_id !== req.user.id) {
+            await createNotification(
+                submission.user_id,
+                'comment',
+                '💬 Yeni Yorum',
+                `${req.user.username} gönderine yorum yaptı: "${content.trim().substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
+                `/challenge/${submission.challenge_id}`
+            );
+        }
 
         res.status(201).json({
             message: 'Yorum eklendi',
