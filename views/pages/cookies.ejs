@@ -1,0 +1,79 @@
+<%- include('../partials/header', { title: 'Çerez Politikası', activePage: '' }) %>
+
+<div class="container" style="max-width: 900px; margin: 3rem auto; padding: 2rem;">
+    <h1 style="margin-bottom: 2rem;">🍪 Çerez Politikası</h1>
+
+    <div style="line-height: 1.8; color: var(--text);">
+        <p><strong>Son Güncelleme:</strong> <%= new Date().toLocaleDateString('tr-TR') %></p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Çerez Nedir?</h2>
+        <p>Çerezler, web siteleri tarafından bilgisayarınıza veya mobil cihazınıza kaydedilen küçük metin dosyalarıdır. Çerezler, web sitesinin düzgün çalışması, kullanıcı deneyiminin iyileştirilmesi ve kullanıcı tercihlerinin hatırlanması için kullanılır.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Kullandığımız Çerez Türleri</h2>
+
+        <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem;">1. Zorunlu Çerezler</h3>
+        <p>Platformun temel işlevlerinin çalışması için gereklidir:</p>
+        <ul>
+            <li><strong>Oturum Çerezleri:</strong> Giriş durumunuzu ve güvenli oturumunuzu korur</li>
+            <li><strong>Kimlik Doğrulama:</strong> JWT token'ınızı localStorage'da saklar</li>
+        </ul>
+
+        <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem;">2. İşlevsellik Çerezleri</h3>
+        <p>Kullanıcı tercihlerinizi hatırlar:</p>
+        <ul>
+            <li><strong>Tema Tercihi:</strong> Dark/Light mode seçiminiz</li>
+            <li><strong>Dil Tercihi:</strong> Seçtiğiniz dil (varsa)</li>
+        </ul>
+
+        <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem;">3. Performans Çerezleri</h3>
+        <p>Platform kullanımını analiz eder:</p>
+        <ul>
+            <li>Hangi sayfaların ziyaret edildiği</li>
+            <li>Kullanıcı davranış analizi</li>
+            <li>Hata raporlaması</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Üçüncü Taraf Çerezleri</h2>
+        <p>Platformumuzda kullanılan üçüncü taraf servislerin çerezleri:</p>
+        <ul>
+            <li><strong>Cloudinary:</strong> Görsel ve video yönetimi için</li>
+            <li><strong>Email Servisi:</strong> Bildirim gönderimi için</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">LocalStorage ve SessionStorage</h2>
+        <p>Çerezlerin yanı sıra, aşağıdaki bilgiler tarayıcınızda saklanır:</p>
+        <ul>
+            <li><strong>JWT Token:</strong> Kimlik doğrulama için (localStorage)</li>
+            <li><strong>Kullanıcı Bilgileri:</strong> Profil bilgileriniz (localStorage)</li>
+            <li><strong>Tema Tercihi:</strong> Dark/light mode seçimi (localStorage)</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Çerezleri Yönetme</h2>
+        <p>Çerezleri kontrol etmek için tarayıcı ayarlarınızı kullanabilirsiniz:</p>
+        <ul>
+            <li><strong>Chrome:</strong> Ayarlar → Gizlilik ve güvenlik → Çerezler</li>
+            <li><strong>Firefox:</strong> Ayarlar → Gizlilik ve Güvenlik → Çerezler</li>
+            <li><strong>Safari:</strong> Tercihler → Gizlilik → Çerezler</li>
+            <li><strong>Edge:</strong> Ayarlar → Çerezler ve site izinleri</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Çerezleri Reddetme</h2>
+        <p><strong>Önemli:</strong> Zorunlu çerezleri reddetmeniz durumunda platform düzgün çalışmayabilir. Oturum açma, veri kaydetme gibi temel işlevler çalışmayacaktır.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Çerez Süreleri</h2>
+        <ul>
+            <li><strong>Oturum Çerezleri:</strong> Tarayıcı kapanana kadar</li>
+            <li><strong>Kalıcı Çerezler:</strong> JWT token 24 saat geçerlidir</li>
+            <li><strong>Tema Tercihi:</strong> Siz değiştirene kadar kalıcıdır</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Değişiklikler</h2>
+        <p>Bu çerez politikası zaman zaman güncellenebilir. Önemli değişiklikler kullanıcılara bildirilecektir.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">İletişim</h2>
+        <p>Çerez politikası ile ilgili sorularınız için:</p>
+        <p><strong>E-posta:</strong> <a href="mailto:haydihepberaber@haydihepberaber.com" style="color: var(--primary);">haydihepberaber@haydihepberaber.com</a></p>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

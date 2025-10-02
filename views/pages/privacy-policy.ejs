@@ -1,0 +1,52 @@
+<%- include('../partials/header', { title: 'Gizlilik Politikası', activePage: '' }) %>
+
+<div class="container" style="max-width: 900px; margin: 3rem auto; padding: 2rem;">
+    <h1 style="margin-bottom: 2rem;">🔒 Gizlilik Politikası</h1>
+
+    <div style="line-height: 1.8; color: var(--text);">
+        <p><strong>Son Güncelleme:</strong> <%= new Date().toLocaleDateString('tr-TR') %></p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">1. Veri Sorumlusu</h2>
+        <p>Haydi Hep Beraber olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında veri sorumlusuyuz.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">2. Toplanan Veriler</h2>
+        <p>Platformumuzda aşağıdaki kişisel verilerinizi topluyoruz:</p>
+        <ul>
+            <li><strong>Kimlik Bilgileri:</strong> Ad, soyad, kullanıcı adı</li>
+            <li><strong>İletişim Bilgileri:</strong> E-posta adresi</li>
+            <li><strong>Görsel/İşitsel Veriler:</strong> Profil fotoğrafı, meydan okuma gönderileri</li>
+            <li><strong>İşlem Güvenliği Bilgileri:</strong> IP adresi, çerez bilgileri</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">3. Verilerin Kullanım Amaçları</h2>
+        <p>Kişisel verileriniz aşağıdaki amaçlarla işlenmektedir:</p>
+        <ul>
+            <li>Platform hizmetlerinin sunulması</li>
+            <li>Kullanıcı hesabı yönetimi</li>
+            <li>Meydan okuma katılımlarının yönetimi</li>
+            <li>İletişim ve bilgilendirme faaliyetleri</li>
+            <li>Platform güvenliğinin sağlanması</li>
+            <li>Yasal yükümlülüklerin yerine getirilmesi</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">4. Veri Güvenliği</h2>
+        <p>Kişisel verilerinizin güvenliği için teknik ve idari tedbirler alınmaktadır. Verileriniz şifrelenmiş olarak saklanmakta ve yetkisiz erişimlere karşı korunmaktadır.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">5. Haklarınız</h2>
+        <p>KVKK kapsamında aşağıdaki haklara sahipsiniz:</p>
+        <ul>
+            <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme</li>
+            <li>İşlenmişse bilgi talep etme</li>
+            <li>İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme</li>
+            <li>Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme</li>
+            <li>Eksik veya yanlış işlenmişse düzeltilmesini isteme</li>
+            <li>KVKK'da öngörülen şartlar çerçevesinde silinmesini isteme</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">6. İletişim</h2>
+        <p>Gizlilik politikamız ile ilgili sorularınız için:</p>
+        <p><strong>E-posta:</strong> <a href="mailto:haydihepberaber@haydihepberaber.com" style="color: var(--primary);">haydihepberaber@haydihepberaber.com</a></p>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

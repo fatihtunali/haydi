@@ -1,0 +1,71 @@
+<%- include('../partials/header', { title: 'Kullanım Şartları', activePage: '' }) %>
+
+<div class="container" style="max-width: 900px; margin: 3rem auto; padding: 2rem;">
+    <h1 style="margin-bottom: 2rem;">📜 Kullanım Şartları</h1>
+
+    <div style="line-height: 1.8; color: var(--text);">
+        <p><strong>Son Güncelleme:</strong> <%= new Date().toLocaleDateString('tr-TR') %></p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">1. Genel Hükümler</h2>
+        <p>Haydi Hep Beraber platformunu kullanarak bu kullanım şartlarını kabul etmiş sayılırsınız. Platform, meydan okuma tabanlı bir sosyal yarışma platformudur.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">2. Kullanıcı Yükümlülükleri</h2>
+        <ul>
+            <li>Doğru ve güncel bilgiler vermekle yükümlüsünüz</li>
+            <li>Hesap güvenliğinizden siz sorumlusunuz</li>
+            <li>Platformu yasalara uygun şekilde kullanmalısınız</li>
+            <li>Diğer kullanıcıların haklarına saygı göstermelisiniz</li>
+            <li>Spam, taciz veya zararlı içerik paylaşmamalısınız</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">3. İçerik ve Fikri Mülkiyet</h2>
+        <ul>
+            <li>Yüklediğiniz içeriklerin sahibi sizsiniz</li>
+            <li>Platformda yayınladığınız içerikler için gerekli hakka sahip olmalısınız</li>
+            <li>Telif hakkı ihlali içeren içerikler kaldırılacaktır</li>
+            <li>Platform, içeriklerinizi hizmet sunmak amacıyla kullanma hakkına sahiptir</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">4. Yasaklı İçerikler</h2>
+        <p>Aşağıdaki içeriklerin paylaşılması kesinlikle yasaktır:</p>
+        <ul>
+            <li>Yasadışı, tehditkar, taciz edici içerikler</li>
+            <li>Nefret söylemi, ayrımcılık içeren içerikler</li>
+            <li>Şiddet, pornografi, çocuk istismarı içeren içerikler</li>
+            <li>Başkalarının kişisel bilgilerini ifşa eden içerikler</li>
+            <li>Sahte, yanıltıcı bilgiler</li>
+            <li>Telif hakkı ihlali içeren materyaller</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">5. Meydan Okumalar ve Puanlama</h2>
+        <ul>
+            <li>Meydan okuma kurallarına uymakla yükümlüsünüz</li>
+            <li>Hileli yöntemler kullanmak yasaktır</li>
+            <li>Puanlar platform algoritması tarafından belirlenir</li>
+            <li>Platform, kuralları değiştirme hakkını saklı tutar</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">6. Hesap Askıya Alma ve Sonlandırma</h2>
+        <p>Platform yönetimi, kullanım şartlarını ihlal eden hesapları uyarı vermeksizin askıya alma veya sonlandırma hakkına sahiptir.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">7. Sorumluluk Sınırlaması</h2>
+        <ul>
+            <li>Platform "olduğu gibi" sunulmaktadır</li>
+            <li>Hizmet kesintilerinden sorumlu değiliz</li>
+            <li>Kullanıcı içeriklerinden kullanıcılar sorumludur</li>
+            <li>Platformun kullanımından doğacak zararlardan sorumlu değiliz</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">8. Uyuşmazlık Çözümü</h2>
+        <p>Bu şartlardan kaynaklanan uyuşmazlıklarda Türkiye Cumhuriyeti yasaları geçerlidir. Uyuşmazlıklar İstanbul Mahkemeleri ve İcra Daireleri'nde çözümlenir.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">9. Değişiklikler</h2>
+        <p>Platform, kullanım şartlarını değiştirme hakkını saklı tutar. Önemli değişiklikler kullanıcılara bildirilecektir.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">10. İletişim</h2>
+        <p>Kullanım şartları ile ilgili sorularınız için:</p>
+        <p><strong>E-posta:</strong> <a href="mailto:haydihepberaber@haydihepberaber.com" style="color: var(--primary);">haydihepberaber@haydihepberaber.com</a></p>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

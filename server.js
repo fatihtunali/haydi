@@ -109,6 +109,23 @@ app.get('/edit-challenge/:id', (req, res) => {
     res.render('pages/edit-challenge', { title: 'Challenge Düzenle', activePage: '', challenge: null, challengeId: req.params.id });
 });
 
+// Legal Pages
+app.get('/privacy-policy', (req, res) => {
+    res.render('pages/privacy-policy', { title: 'Gizlilik Politikası', activePage: '', challenge: null });
+});
+
+app.get('/kvkk', (req, res) => {
+    res.render('pages/kvkk', { title: 'KVKK Aydınlatma Metni', activePage: '', challenge: null });
+});
+
+app.get('/terms', (req, res) => {
+    res.render('pages/terms', { title: 'Kullanım Şartları', activePage: '', challenge: null });
+});
+
+app.get('/cookies', (req, res) => {
+    res.render('pages/cookies', { title: 'Çerez Politikası', activePage: '', challenge: null });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/challenges', challengeRoutes);

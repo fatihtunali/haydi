@@ -1,0 +1,64 @@
+<%- include('../partials/header', { title: 'KVKK Aydınlatma Metni', activePage: '' }) %>
+
+<div class="container" style="max-width: 900px; margin: 3rem auto; padding: 2rem;">
+    <h1 style="margin-bottom: 2rem;">📋 KVKK Aydınlatma Metni</h1>
+
+    <div style="line-height: 1.8; color: var(--text);">
+        <p><strong>Son Güncelleme:</strong> <%= new Date().toLocaleDateString('tr-TR') %></p>
+
+        <p>6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verilerinizin işlenmesine ilişkin olarak sizi bilgilendirmek isteriz.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Veri Sorumlusu</h2>
+        <p><strong>Haydi Hep Beraber</strong><br>
+        E-posta: haydihepberaber@haydihepberaber.com</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">İşlenen Kişisel Veriler</h2>
+        <ul>
+            <li><strong>Kimlik Bilgileri:</strong> Ad, soyad, kullanıcı adı</li>
+            <li><strong>İletişim Bilgileri:</strong> E-posta adresi</li>
+            <li><strong>Görsel/İşitsel Veriler:</strong> Profil fotoğrafı, meydan okuma içerikleri</li>
+            <li><strong>İşlem Güvenliği Bilgileri:</strong> IP adresi, giriş kayıtları</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Kişisel Verilerin İşlenme Amaçları</h2>
+        <ul>
+            <li>Platform hizmetlerinin sunulması ve geliştirilmesi</li>
+            <li>Kullanıcı hesabı oluşturma ve yönetimi</li>
+            <li>Meydan okuma ve yarışma yönetimi</li>
+            <li>Kullanıcı deneyiminin iyileştirilmesi</li>
+            <li>İstatistiksel analiz ve raporlama</li>
+            <li>Yasal yükümlülüklerin yerine getirilmesi</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Kişisel Verilerin Aktarımı</h2>
+        <p>Kişisel verileriniz, yukarıda belirtilen amaçların gerçekleştirilebilmesi için:</p>
+        <ul>
+            <li>Bulut hizmet sağlayıcılarına (Cloudinary vb.)</li>
+            <li>E-posta hizmet sağlayıcılarına</li>
+            <li>Yasal zorunluluk halinde yetkili kamu kurum ve kuruluşlarına</li>
+        </ul>
+        <p>aktarılabilir.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Kişisel Veri Toplamanın Yöntemi ve Hukuki Sebebi</h2>
+        <p>Kişisel verileriniz, platformumuza üye olurken veya platform hizmetlerini kullanırken elektronik ortamda toplanmaktadır. Hukuki sebep olarak açık rızanız ve hizmet sözleşmesinin ifası bulunmaktadır.</p>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">KVKK Kapsamındaki Haklarınız</h2>
+        <p>KVKK'nın 11. maddesi uyarınca aşağıdaki haklara sahipsiniz:</p>
+        <ul>
+            <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme</li>
+            <li>İşlenmişse buna ilişkin bilgi talep etme</li>
+            <li>İşlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme</li>
+            <li>Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme</li>
+            <li>Eksik veya yanlış işlenmişse düzeltilmesini isteme</li>
+            <li>KVKK'nın 7. maddesinde öngörülen şartlar çerçevesinde silinmesini veya yok edilmesini isteme</li>
+            <li>Düzeltme, silme ve yok edilme işlemlerinin kişisel verilerin aktarıldığı üçüncü kişilere bildirilmesini isteme</li>
+            <li>İşlenen verilerin münhasıran otomatik sistemler vasıtasıyla analiz edilmesi suretiyle aleyhinize bir sonucun ortaya çıkmasına itiraz etme</li>
+            <li>Kişisel verilerin kanuna aykırı olarak işlenmesi sebebiyle zarara uğramanız halinde zararın giderilmesini talep etme</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Başvuru Yöntemi</h2>
+        <p>Yukarıda belirtilen haklarınızı kullanmak için talebinizi <a href="mailto:haydihepberaber@haydihepberaber.com" style="color: var(--primary);">haydihepberaber@haydihepberaber.com</a> adresine iletebilirsiniz.</p>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
