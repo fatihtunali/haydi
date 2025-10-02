@@ -133,11 +133,25 @@ async function createTeam(req, res) {
 
         const teamId = result.insertId;
 
-        // Kaptanı takıma ekle
-        await pool.query(
-            'INSERT INTO participants (challenge_id, user_id, team_id, status) VALUES (?, ?, ?, ?)',
-            [challengeId, req.user.id, teamId, 'aktif']
+        // Kaptanı takıma ekle - Eğer zaten katılmışsa team_id güncelle
+        const [[existingParticipant]] = await pool.query(
+            'SELECT id FROM participants WHERE challenge_id = ? AND user_id = ?',
+            [challengeId, req.user.id]
         );
+
+        if (existingParticipant) {
+            // Zaten katılmış, team_id güncelle
+            await pool.query(
+                'UPDATE participants SET team_id = ?, status = ? WHERE challenge_id = ? AND user_id = ?',
+                [teamId, 'aktif', challengeId, req.user.id]
+            );
+        } else {
+            // Yeni katılım
+            await pool.query(
+                'INSERT INTO participants (challenge_id, user_id, team_id, status) VALUES (?, ?, ?, ?)',
+                [challengeId, req.user.id, teamId, 'aktif']
+            );
+        }
 
         res.status(201).json({
             message: 'Takım oluşturuldu',
@@ -195,11 +209,25 @@ async function joinTeam(req, res) {
             return res.status(400).json({ error: 'Takım dolu' });
         }
 
-        // Kullanıcıyı takıma ekle
-        await pool.query(
-            'INSERT INTO participants (challenge_id, user_id, team_id, status) VALUES (?, ?, ?, ?)',
-            [team.challenge_id, req.user.id, teamId, 'aktif']
+        // Kullanıcıyı takıma ekle - Eğer zaten katılmışsa team_id güncelle
+        const [[existingParticipant]] = await pool.query(
+            'SELECT id FROM participants WHERE challenge_id = ? AND user_id = ?',
+            [team.challenge_id, req.user.id]
         );
+
+        if (existingParticipant) {
+            // Zaten katılmış, team_id güncelle
+            await pool.query(
+                'UPDATE participants SET team_id = ?, status = ? WHERE challenge_id = ? AND user_id = ?',
+                [teamId, 'aktif', team.challenge_id, req.user.id]
+            );
+        } else {
+            // Yeni katılım
+            await pool.query(
+                'INSERT INTO participants (challenge_id, user_id, team_id, status) VALUES (?, ?, ?, ?)',
+                [team.challenge_id, req.user.id, teamId, 'aktif']
+            );
+        }
 
         res.json({ message: 'Takıma katıldınız' });
 

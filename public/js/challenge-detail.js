@@ -980,6 +980,11 @@ async function createTeam() {
         // Takımları yeniden yükle
         await loadTeams(currentChallenge.id);
 
+        // Profil sayfasındaki takım listesini güncelle
+        if (window.refreshProfileTeams) {
+            await window.refreshProfileTeams();
+        }
+
     } catch (error) {
         showError(error.message || 'Takım oluşturulamadı');
     }
@@ -996,6 +1001,11 @@ async function joinTeam(teamId) {
         // Takımları yeniden yükle
         await loadTeams(currentChallenge.id);
 
+        // Profil sayfasındaki takım listesini güncelle
+        if (window.refreshProfileTeams) {
+            await window.refreshProfileTeams();
+        }
+
     } catch (error) {
         showError(error.message || 'Takıma katılınamadı');
     }
@@ -1011,6 +1021,11 @@ async function leaveTeam(teamId) {
 
         // Takımları yeniden yükle
         await loadTeams(currentChallenge.id);
+
+        // Profil sayfasındaki takım listesini güncelle
+        if (window.refreshProfileTeams) {
+            await window.refreshProfileTeams();
+        }
 
     } catch (error) {
         showError(error.message || 'Takımdan ayrılınamadı');

@@ -6,6 +6,19 @@ let userSubmissions = [];
 let userTeams = [];
 let activeTab = 'info'; // 'info', 'challenges', 'submissions', veya 'teams'
 
+// Global refresh fonksiyonu - diğer sayfalarda takım değişikliklerinden sonra çağrılabilir
+window.refreshProfileTeams = async function() {
+    if (!currentUser) return; // Profil sayfası yüklü değilse işlem yapma
+
+    await loadUserChallenges();
+    await loadUserTeams();
+
+    // Eğer teams tab'ındaysak render'ı güncelle
+    if (activeTab === 'teams') {
+        renderProfile();
+    }
+};
+
 async function loadProfile() {
     const profileContent = document.getElementById('profileContent');
 
