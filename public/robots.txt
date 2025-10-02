@@ -1,0 +1,35 @@
+# Haydi Hep Beraber - robots.txt
+
+User-agent: *
+Allow: /
+Allow: /challenges
+Allow: /challenge/
+Allow: /leaderboard
+Allow: /login
+Allow: /register
+
+# Disallow private/admin areas
+Disallow: /admin
+Disallow: /api/
+Disallow: /uploads/
+
+# Disallow duplicate content
+Disallow: /profile?*
+Disallow: /*?sort=
+Disallow: /*?filter=
+
+# Crawl delay (saniyede bir sayfa)
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://haydihepberaber.com/sitemap.xml
+
+# Google Bot specific rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+# Bing Bot specific rules
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1

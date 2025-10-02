@@ -17,6 +17,7 @@ const notificationRoutes = require('./backend/routes/notifications');
 const badgeRoutes = require('./backend/routes/badges');
 const followRoutes = require('./backend/routes/follows');
 const emailRoutes = require('./backend/routes/email');
+const sitemapRoutes = require('./backend/routes/sitemap');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -125,6 +126,9 @@ app.get('/terms', (req, res) => {
 app.get('/cookies', (req, res) => {
     res.render('pages/cookies', { title: 'Çerez Politikası', activePage: '', challenge: null });
 });
+
+// SEO Routes
+app.use('/', sitemapRoutes);
 
 // API Routes
 app.use('/api/auth', authRoutes);

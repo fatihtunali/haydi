@@ -38,6 +38,29 @@
     <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
 
+    <!-- Google Analytics & Ads Tracking (KVKK Uyumlu - Cookie Consent Sonrası Yüklenir) -->
+    <script>
+        // Google Analytics & Ads'i sadece cookie onayı verildiyse yükle
+        if (localStorage.getItem('cookieConsent') === 'accepted') {
+            // Google tag (gtag.js) - Global Site Tag
+            var gaScript = document.createElement('script');
+            gaScript.async = true;
+            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17618942258';
+            document.head.appendChild(gaScript);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('js', new Date());
+
+            // Google Ads Conversion Tracking
+            gtag('config', 'AW-17618942258');
+
+            // Google Analytics
+            gtag('config', 'G-MWJ09WF70N');
+        }
+    </script>
+
     <!-- Dark Mode Script -->
     <script>
         // Initialize theme on page load

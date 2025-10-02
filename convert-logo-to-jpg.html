@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Logo SVG to JPG Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #ccc;
+            margin: 20px 0;
+            display: none;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        #preview {
+            margin: 20px 0;
+            max-width: 400px;
+            border: 2px solid #ccc;
+            display: inline-block;
+        }
+        .info {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Haydi Hep Beraber Logo Converter</h1>
+    <p class="info">Bu sayfa otomatik olarak SVG logonuzu JPG formatına çevirecek.<br>
+    Farklı boyutlarda indirme seçenekleri mevcut.</p>
+
+    <canvas id="canvas1200" width="1200" height="1200"></canvas>
+    <canvas id="canvas600" width="600" height="600"></canvas>
+    <canvas id="canvas300" width="300" height="300"></canvas>
+
+    <div id="preview"></div>
+
+    <div>
+        <button onclick="downloadLogo(1200)">📥 İndir 1200x1200 (Google Ads)</button>
+        <button onclick="downloadLogo(600)">📥 İndir 600x600</button>
+        <button onclick="downloadLogo(300)">📥 İndir 300x300</button>
+    </div>
+
+    <script>
+        // SVG Logo
+        const svgString = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4ECDC4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A8E6CF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD93D;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="60" height="60" rx="12" fill="#f8f9fa"/>
+
+  <!-- Sol Figür -->
+  <circle cx="15" cy="25" r="6" fill="url(#grad1)"/>
+  <path d="M10 32 Q10 40, 15 45 L20 45 Q25 40, 25 32" fill="url(#grad1)"/>
+
+  <!-- Orta Figür (Büyük) -->
+  <circle cx="30" cy="20" r="8" fill="url(#grad2)"/>
+  <path d="M20 30 Q20 40, 30 48 L40 48 Q50 40, 50 30" fill="url(#grad2)"/>
+
+  <!-- Sağ Figür -->
+  <circle cx="45" cy="25" r="6" fill="url(#grad1)"/>
+  <path d="M40 32 Q40 40, 45 45 L50 45 Q55 40, 55 32" fill="url(#grad1)"/>
+</svg>`;
+
+        // Convert SVG to Image
+        function convertSVGToCanvas(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const ctx = canvas.getContext('2d');
+
+            // White background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, size, size);
+
+            const img = new Image();
+            const blob = new Blob([svgString], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(blob);
+
+            img.onload = function() {
+                // Draw centered and scaled
+                ctx.drawImage(img, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+
+                // Show preview for 1200x1200
+                if (size === 1200) {
+                    const previewImg = document.createElement('img');
+                    previewImg.src = canvas.toDataURL('image/jpeg', 0.95);
+                    previewImg.style.maxWidth = '400px';
+                    document.getElementById('preview').innerHTML = '<h3>Önizleme (1200x1200):</h3>';
+                    document.getElementById('preview').appendChild(previewImg);
+                }
+            };
+
+            img.src = url;
+        }
+
+        // Download Logo
+        function downloadLogo(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+
+            // Convert to JPEG with high quality
+            canvas.toBlob(function(blob) {
+                const link = document.createElement('a');
+                link.download = `haydi-hep-beraber-logo-${size}x${size}.jpg`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                alert(`✅ Logo indirildi: ${size}x${size} JPG`);
+            }, 'image/jpeg', 0.95);
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            convertSVGToCanvas(1200);
+            convertSVGToCanvas(600);
+            convertSVGToCanvas(300);
+        };
+    </script>
+</body>
+</html>

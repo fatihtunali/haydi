@@ -33,6 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
+            // Google Ads Conversion Tracking - KAYIT
+            if (typeof trackRegistrationConversion === 'function') {
+                trackRegistrationConversion();
+            }
+
             // Ana sayfaya yönlendir
             showSuccess('Kayıt başarılı! Yönlendiriliyorsunuz...');
             setTimeout(() => {
