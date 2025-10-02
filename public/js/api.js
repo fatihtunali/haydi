@@ -94,6 +94,11 @@ const ChallengeAPI = {
 
 // Submission API
 const SubmissionAPI = {
+    getFeed: async (params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return apiRequest(`/submissions/feed?${query}`);
+    },
+
     getByChallenge: async (challengeId, params = {}) => {
         const query = new URLSearchParams(params).toString();
         return apiRequest(`/submissions/challenge/${challengeId}?${query}`);

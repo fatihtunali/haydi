@@ -347,11 +347,88 @@ async function deleteSubmission(req, res) {
     }
 }
 
+// Feed - Tüm challenge'lardan popüler submission'ları getir
+async function getFeed(req, res) {
+    const { limit = 20, offset = 0, category } = req.query;
+
+    try {
+        let query = `
+            SELECT
+                s.id,
+                s.challenge_id,
+                s.user_id,
+                s.content,
+                s.location,
+                s.media_url,
+                s.media_type,
+                s.likes_count,
+                s.created_at,
+                u.username,
+                u.avatar_url,
+                u.full_name,
+                c.title as challenge_title,
+                c.difficulty as challenge_difficulty,
+                cat.name as category_name,
+                cat.slug as category_slug,
+                cat.icon as category_icon,
+                COUNT(DISTINCT com.id) as comments_count
+            FROM submissions s
+            JOIN users u ON s.user_id = u.id
+            JOIN challenges c ON s.challenge_id = c.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            LEFT JOIN comments com ON s.id = com.submission_id
+            WHERE s.status = 'onaylandi'
+        `;
+
+        const params = [];
+
+        // Category filtresi
+        if (category) {
+            query += ` AND cat.slug = ?`;
+            params.push(category);
+        }
+
+        query += `
+            GROUP BY s.id
+            ORDER BY s.likes_count DESC, s.created_at DESC
+            LIMIT ? OFFSET ?
+        `;
+
+        params.push(parseInt(limit), parseInt(offset));
+
+        const [submissions] = await pool.query(query, params);
+
+        // Eğer kullanıcı giriş yapmışsa beğenilerini kontrol et
+        if (req.user) {
+            const submissionIds = submissions.map(s => s.id);
+            if (submissionIds.length > 0) {
+                const [likes] = await pool.query(`
+                    SELECT submission_id
+                    FROM likes
+                    WHERE user_id = ? AND submission_id IN (?)
+                `, [req.user.id, submissionIds]);
+
+                const likedIds = new Set(likes.map(l => l.submission_id));
+                submissions.forEach(s => {
+                    s.is_liked_by_user = likedIds.has(s.id);
+                });
+            }
+        }
+
+        res.json({ submissions });
+
+    } catch (error) {
+        console.error('Feed yükleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
 module.exports = {
     getSubmissions,
     createSubmission,
     toggleLike,
     addComment,
     getComments,
-    deleteSubmission
+    deleteSubmission,
+    getFeed
 };

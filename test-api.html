@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Haydi Hep Beraber</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 3rem;
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+        .test-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status.success { background: #28a745; color: white; }
+        .status.error { background: #dc3545; color: white; }
+        .status.pending { background: #ffc107; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 API Test Panel</h1>
+        <p class="subtitle">Haydi Hep Beraber - Sunucu Bağlantı Testi</p>
+
+        <!-- Test 1: Health Check -->
+        <div class="test-section">
+            <div class="test-title">
+                <span>1️⃣ Sunucu Durumu (Health Check)</span>
+            </div>
+            <button onclick="testHealth()" id="healthBtn">Test Et</button>
+            <div id="healthResult"></div>
+        </div>
+
+        <!-- Test 2: Database Connection -->
+        <div class="test-section">
+            <div class="test-title">
+                <span>2️⃣ Veritabanı Bağlantısı</span>
+            </div>
+            <button onclick="testDatabase()" id="dbBtn">Test Et</button>
+            <div id="dbResult"></div>
+        </div>
+
+        <!-- Test 3: Categories API -->
+        <div class="test-section">
+            <div class="test-title">
+                <span>3️⃣ Kategoriler API</span>
+            </div>
+            <button onclick="testCategories()" id="catBtn">Test Et</button>
+            <div id="catResult"></div>
+        </div>
+
+        <!-- Test 4: Challenges API -->
+        <div class="test-section">
+            <div class="test-title">
+                <span>4️⃣ Meydan Okumalar API</span>
+            </div>
+            <button onclick="testChallenges()" id="chalBtn">Test Et</button>
+            <div id="chalResult"></div>
+        </div>
+
+        <!-- Test All -->
+        <div style="margin-top: 2rem; text-align: center;">
+            <button onclick="testAll()" id="allBtn" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                🚀 Tümünü Test Et
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://haydihepberaber.com/api'; // Sunucu yüklendikten sonra bu URL'yi kullan
+        // Test için: const API_URL = 'http://localhost:3000/api';
+
+        function showResult(elementId, status, message, data = null) {
+            const element = document.getElementById(elementId);
+            const className = status === 'success' ? 'success' : status === 'error' ? 'error' : 'info';
+
+            let html = `<div class="result ${className}">`;
+            html += `<strong>${status === 'success' ? '✅' : status === 'error' ? '❌' : 'ℹ️'} ${message}</strong><br>`;
+
+            if (data) {
+                html += `<pre style="margin-top: 0.5rem; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre>`;
+            }
+
+            html += '</div>';
+            element.innerHTML = html;
+        }
+
+        async function testHealth() {
+            const btn = document.getElementById('healthBtn');
+            btn.disabled = true;
+            btn.textContent = 'Test ediliyor...';
+
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('healthResult', 'success', 'Sunucu çalışıyor!', data);
+                } else {
+                    showResult('healthResult', 'error', 'Sunucu hatası', data);
+                }
+            } catch (error) {
+                showResult('healthResult', 'error', 'Bağlantı hatası', { error: error.message });
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Test Et';
+        }
+
+        async function testDatabase() {
+            const btn = document.getElementById('dbBtn');
+            btn.disabled = true;
+            btn.textContent = 'Test ediliyor...';
+
+            try {
+                // Kategorileri çekerek veritabanı bağlantısını test et
+                const response = await fetch(`${API_URL}/categories`);
+                const data = await response.json();
+
+                if (response.ok && data.categories) {
+                    showResult('dbResult', 'success', `Veritabanı bağlantısı başarılı! ${data.categories.length} kategori bulundu.`, {
+                        database: 'Connected',
+                        categories_count: data.categories.length
+                    });
+                } else {
+                    showResult('dbResult', 'error', 'Veritabanı hatası', data);
+                }
+            } catch (error) {
+                showResult('dbResult', 'error', 'Veritabanı bağlantı hatası', { error: error.message });
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Test Et';
+        }
+
+        async function testCategories() {
+            const btn = document.getElementById('catBtn');
+            btn.disabled = true;
+            btn.textContent = 'Test ediliyor...';
+
+            try {
+                const response = await fetch(`${API_URL}/categories`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('catResult', 'success', `${data.categories.length} kategori başarıyla yüklendi`, {
+                        count: data.categories.length,
+                        sample: data.categories.slice(0, 3)
+                    });
+                } else {
+                    showResult('catResult', 'error', 'Kategoriler yüklenemedi', data);
+                }
+            } catch (error) {
+                showResult('catResult', 'error', 'API hatası', { error: error.message });
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Test Et';
+        }
+
+        async function testChallenges() {
+            const btn = document.getElementById('chalBtn');
+            btn.disabled = true;
+            btn.textContent = 'Test ediliyor...';
+
+            try {
+                const response = await fetch(`${API_URL}/challenges?limit=5`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('chalResult', 'success', `${data.challenges.length} meydan okuma başarıyla yüklendi`, {
+                        count: data.challenges.length,
+                        total: data.total,
+                        sample: data.challenges.slice(0, 2).map(c => ({
+                            id: c.id,
+                            title: c.title,
+                            status: c.status
+                        }))
+                    });
+                } else {
+                    showResult('chalResult', 'error', 'Meydan okumalar yüklenemedi', data);
+                }
+            } catch (error) {
+                showResult('chalResult', 'error', 'API hatası', { error: error.message });
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Test Et';
+        }
+
+        async function testAll() {
+            const btn = document.getElementById('allBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Test ediliyor...';
+
+            await testHealth();
+            await new Promise(r => setTimeout(r, 500));
+            await testDatabase();
+            await new Promise(r => setTimeout(r, 500));
+            await testCategories();
+            await new Promise(r => setTimeout(r, 500));
+            await testChallenges();
+
+            btn.disabled = false;
+            btn.textContent = '🚀 Tümünü Test Et';
+        }
+    </script>
+</body>
+</html>

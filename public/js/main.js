@@ -2,10 +2,35 @@
 
 // Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', async () => {
+    await loadFeed();
     await loadCategories();
     await loadFeaturedChallenges();
     await loadStats();
 });
+
+// Instagram-style feed yükle
+async function loadFeed() {
+    const feedContainer = document.getElementById('feedContainer');
+    if (!feedContainer) return;
+
+    showLoading(feedContainer);
+
+    try {
+        const data = await SubmissionAPI.getFeed({ limit: 12 });
+        const submissions = data.submissions || [];
+
+        if (submissions.length === 0) {
+            showEmptyState(feedContainer, '📸', 'Henüz gönderi yok');
+            return;
+        }
+
+        feedContainer.innerHTML = submissions.map(s => renderSubmission(s, true)).join('');
+
+    } catch (error) {
+        console.error('Feed yükleme hatası:', error);
+        feedContainer.innerHTML = `<p>Gönderiler yüklenirken bir hata oluştu</p>`;
+    }
+}
 
 // Kategorileri yükle
 async function loadCategories() {
@@ -24,9 +49,9 @@ async function loadCategories() {
         }
 
         categoriesGrid.innerHTML = categories.map(cat => `
-            <a href="/challenges?category=${cat.slug}" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: var(--card-bg); border-radius: 12px; text-decoration: none; transition: all 0.3s; border: 2px solid transparent;">
-                <div style="font-size: 2rem; line-height: 1;">${cat.icon}</div>
-                <div style="font-weight: 600; color: var(--text); font-size: 1rem;">${cat.name}</div>
+            <a href="/challenges?category=${cat.slug}" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.25rem 1.75rem; background: var(--card-bg); border-radius: 16px; text-decoration: none; transition: all 0.3s; border: 2px solid var(--border); min-width: 140px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+                <div style="font-size: 3rem; line-height: 1;">${cat.icon}</div>
+                <div style="font-weight: 600; color: var(--text); font-size: 0.95rem; text-align: center;">${cat.name}</div>
             </a>
         `).join('');
 
