@@ -3,6 +3,19 @@
     <!-- Filters -->
     <section style="background: var(--card-bg); padding: 2rem 0; border-bottom: 1px solid var(--border);">
         <div class="container">
+            <!-- Arama Kutusu -->
+            <div style="margin-bottom: 1.5rem;">
+                <input
+                    type="text"
+                    id="searchInput"
+                    class="form-input"
+                    placeholder="🔍 Meydan okuma ara... (başlık, açıklama)"
+                    style="width: 100%; max-width: 500px;"
+                    onkeyup="handleSearch(event)"
+                >
+            </div>
+
+            <!-- Filtreler -->
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <select id="categoryFilter" class="form-input" style="width: auto;">
                     <option value="">Tüm Kategoriler</option>
@@ -10,9 +23,22 @@
 
                 <select id="difficultyFilter" class="form-input" style="width: auto;">
                     <option value="">Tüm Zorluklar</option>
-                    <option value="kolay">Kolay</option>
-                    <option value="orta">Orta</option>
-                    <option value="zor">Zor</option>
+                    <option value="kolay">🟢 Kolay</option>
+                    <option value="orta">🟡 Orta</option>
+                    <option value="zor">🔴 Zor</option>
+                </select>
+
+                <select id="statusFilter" class="form-input" style="width: auto;">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="aktif">✅ Aktif</option>
+                    <option value="yaklasan">📅 Yaklaşan</option>
+                    <option value="biten">🏁 Biten</option>
+                </select>
+
+                <select id="teamFilter" class="form-input" style="width: auto;">
+                    <option value="">Solo & Takım</option>
+                    <option value="solo">👤 Solo</option>
+                    <option value="team">👥 Takım</option>
                 </select>
 
                 <button onclick="applyFilters()" class="btn btn-primary btn-small">Filtrele</button>

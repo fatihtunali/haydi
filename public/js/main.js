@@ -140,6 +140,15 @@ function createChallengeCard(challenge) {
                             📂 ${challenge.category_name}
                         </span>
                     ` : ''}
+                    ${challenge.is_team_based ? `
+                        <span style="padding: 0.25rem 0.75rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; color: #6366f1; font-weight: 600; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                            👥 Takım
+                        </span>
+                    ` : `
+                        <span style="padding: 0.25rem 0.75rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: #10b981; font-weight: 600; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
+                            👤 Solo
+                        </span>
+                    `}
                     <span style="color: var(--text-light); display: flex; align-items: center; gap: 0.25rem;">
                         👥 ${participantCount} katılımcı
                     </span>
