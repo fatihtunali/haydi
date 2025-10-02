@@ -333,10 +333,12 @@ async function loadUserTeams() {
         const teamPromises = teamChallenges.map(async (challenge) => {
             try {
                 const teams = await TeamAPI.getByChallenge(challenge.id);
+
                 // Kullanıcının üye olduğu takımı bul
                 const userTeam = teams.teams.find(team =>
                     team.members && team.members.some(member => member.user_id === currentUser.id)
                 );
+
                 if (userTeam) {
                     return {
                         ...userTeam,
@@ -555,11 +557,15 @@ function renderTeamCard(team) {
                 <a href="/challenge/${team.challenge_id}" class="btn btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
                     🎯 Challenge'a Git
                 </a>
-                ${!isCaptain ? `
+                ${isCaptain ? `
+                    <button onclick="deleteTeamFromProfile(${team.id})" class="btn btn-danger" style="flex: 1;">
+                        🗑️ Takımı Sil
+                    </button>
+                ` : `
                     <button onclick="leaveTeamFromProfile(${team.id}, ${team.challenge_id})" class="btn btn-danger" style="flex: 1;">
                         🚪 Takımdan Ayrıl
                     </button>
-                ` : ''}
+                `}
             </div>
         </div>
     `;
@@ -582,6 +588,26 @@ async function leaveTeamFromProfile(teamId, challengeId) {
 
     } catch (error) {
         showError(error.message || 'Takımdan ayrılırken bir hata oluştu');
+    }
+}
+
+// Profil sayfasından takımı sil (kaptan için)
+async function deleteTeamFromProfile(teamId) {
+    if (!confirm('⚠️ Takımı silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz ve tüm takım üyeleri çıkarılacaktır.')) {
+        return;
+    }
+
+    try {
+        await TeamAPI.delete(teamId);
+        showSuccess('Takım silindi');
+
+        // Takım listesini ve challenge listesini yenile
+        await loadUserChallenges();
+        await loadUserTeams();
+        renderProfile();
+
+    } catch (error) {
+        showError(error.message || 'Takım silinirken bir hata oluştu');
     }
 }
 

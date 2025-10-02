@@ -176,6 +176,19 @@ async function approveSubmission(req, res) {
             [pointsToAward, submission.challenge_id, submission.user_id]
         );
 
+        // Takım challenge'ı ise, takıma da puan ekle
+        const [[participant]] = await pool.query(
+            'SELECT team_id FROM participants WHERE challenge_id = ? AND user_id = ?',
+            [submission.challenge_id, submission.user_id]
+        );
+
+        if (participant && participant.team_id) {
+            await pool.query(
+                'UPDATE teams SET total_points = total_points + ? WHERE id = ?',
+                [pointsToAward, participant.team_id]
+            );
+        }
+
         // Bildirim oluştur
         await pool.query(
             `INSERT INTO notifications (user_id, type, title, message, link)

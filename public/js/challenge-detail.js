@@ -435,6 +435,11 @@ async function joinChallenge() {
         currentChallenge.participant_count++;
         renderChallengeDetail();
 
+        // Eğer takım challenge'ı ise, takımları yükle
+        if (currentChallenge.is_team_based) {
+            await loadTeams(currentChallenge.id);
+        }
+
     } catch (error) {
         showError(error.message);
     }
@@ -712,9 +717,15 @@ function renderTeams() {
                                 </div>
                             </div>
                             ${userTeam && userTeam.id === team.id ? `
-                                <button onclick="leaveTeam(${team.id})" class="btn btn-danger btn-small">
-                                    Ayrıl
-                                </button>
+                                ${team.captain_id === getCurrentUserId() ? `
+                                    <button onclick="deleteTeam(${team.id})" class="btn btn-danger btn-small">
+                                        🗑️ Takımı Sil
+                                    </button>
+                                ` : `
+                                    <button onclick="leaveTeam(${team.id})" class="btn btn-danger btn-small">
+                                        🚪 Ayrıl
+                                    </button>
+                                `}
                             ` : !userTeam && canManageTeam ? `
                                 <button onclick="joinTeam(${team.id})" class="btn btn-primary btn-small">
                                     Katıl
@@ -1029,5 +1040,26 @@ async function leaveTeam(teamId) {
 
     } catch (error) {
         showError(error.message || 'Takımdan ayrılınamadı');
+    }
+}
+
+// Takımı sil (sadece kaptan)
+async function deleteTeam(teamId) {
+    if (!confirm('⚠️ Takımı silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz ve tüm takım üyeleri çıkarılacaktır.')) return;
+
+    try {
+        await TeamAPI.delete(teamId);
+        showSuccess('Takım silindi');
+
+        // Takımları yeniden yükle
+        await loadTeams(currentChallenge.id);
+
+        // Profil sayfasındaki takım listesini güncelle
+        if (window.refreshProfileTeams) {
+            await window.refreshProfileTeams();
+        }
+
+    } catch (error) {
+        showError(error.message || 'Takım silinemedi');
     }
 }
