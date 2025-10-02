@@ -11,28 +11,49 @@ function updateAuthButtons() {
     if (isLoggedIn()) {
         const user = getUser();
         // Kullanıcı adını belirle (full_name varsa onu kullan, yoksa username)
-        const displayName = user.full_name
-            ? `${user.full_name} (@${user.username})`
-            : `@${user.username}`;
+        const displayName = user.full_name || user.username;
 
         authButtons.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); border-radius: 20px; border: 2px solid var(--primary);">
-                <span style="font-size: 1.2rem;">🏆</span>
-                <span style="font-weight: 700; color: var(--primary); transition: all 0.3s;" id="userPoints">${user.points || 0}</span>
-                <span style="font-size: 0.85rem; color: var(--text-light);">puan</span>
+            <!-- Puan -->
+            <div style="display: flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.6rem; background: rgba(16, 185, 129, 0.08); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                <span style="font-size: 0.9rem;">🏆</span>
+                <span style="font-weight: 700; color: #10b981; font-size: 0.8rem;" id="userPoints">${user.points || 0}</span>
             </div>
-            <a href="/create-challenge" class="btn btn-small btn-primary">🎯 Challenge Oluştur</a>
-            ${user.role === 'admin' ? '<a href="/admin" class="btn btn-small" style="background: #ef4444; color: white;">🎛️ Admin</a>' : ''}
-            <a href="/profile" class="nav-link" style="color: #2C3E50; font-weight: 500; display: flex; align-items: center; gap: 8px;">
-                ${user.avatar_url ? `<img src="${user.avatar_url}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">` : ''}
-                ${displayName}
+
+            <!-- Meydan Okuma + -->
+            <a href="/create-challenge" style="display: flex; align-items: center; gap: 0.25rem; padding: 0.35rem 0.6rem; background: var(--primary); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
+                <span style="font-size: 0.9rem;">+</span>
+                <span>Meydan Okuma</span>
             </a>
-            <button onclick="handleLogout()" class="btn btn-small btn-danger">Çıkış</button>
+
+            ${user.role === 'admin' ? `
+                <a href="/admin" style="display: flex; align-items: center; padding: 0.35rem 0.6rem; background: #ef4444; color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;" onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
+                    Admin
+                </a>
+            ` : ''}
+
+            <!-- Kullanıcı -->
+            <a href="/profile" style="display: flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.6rem 0.3rem 0.35rem; background: rgba(99, 102, 241, 0.08); border-radius: 8px; text-decoration: none; transition: all 0.2s; border: 1px solid rgba(99, 102, 241, 0.15);" onmouseover="this.style.background='rgba(99, 102, 241, 0.12)';" onmouseout="this.style.background='rgba(99, 102, 241, 0.08)';">
+                ${user.avatar_url
+                    ? `<img src="${user.avatar_url}" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">`
+                    : `<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.7rem;">${displayName.charAt(0).toUpperCase()}</div>`
+                }
+                <span style="font-weight: 600; color: var(--text); font-size: 0.8rem; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${displayName}</span>
+            </a>
+
+            <!-- Çıkış -->
+            <button onclick="handleLogout()" style="display: flex; align-items: center; padding: 0.35rem 0.5rem; background: transparent; color: var(--text-light); border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444';" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--text-light)';">
+                Çıkış
+            </button>
         `;
     } else {
         authButtons.innerHTML = `
-            <a href="/login" class="btn btn-small btn-secondary">Giriş Yap</a>
-            <a href="/register" class="btn btn-small btn-primary">Kayıt Ol</a>
+            <a href="/login" style="padding: 0.35rem 0.8rem; background: transparent; color: var(--text); border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; border: 1px solid var(--border);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';">
+                Giriş Yap
+            </a>
+            <a href="/register" style="padding: 0.35rem 0.8rem; background: var(--primary); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;" onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
+                Kayıt Ol
+            </a>
         `;
     }
 }

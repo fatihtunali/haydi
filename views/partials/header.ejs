@@ -37,31 +37,23 @@
 </head>
 <body<% if (typeof challengeId !== 'undefined') { %> data-challenge-id="<%= challengeId %>"<% } %>>
     <!-- Header -->
-    <header class="header">
+    <header class="header" style="padding: 0.4rem 0; border-bottom: 1px solid var(--border);">
         <div class="container">
-            <div class="header-content" style="justify-content: flex-start;">
-                <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none; cursor: pointer;">
-                    <img src="/assets/images/logo-icon.svg" alt="Haydi Hep Beraber" style="height: 40px;">
-                    <span style="
-                        font-size: 1.5rem;
-                        font-weight: 900;
-                        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #ec4899 50%, #f59e0b 75%, #10b981 100%);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
-                        text-shadow:
-                            2px 2px 4px rgba(0, 0, 0, 0.1),
-                            4px 4px 8px rgba(99, 102, 241, 0.2);
-                        letter-spacing: -0.5px;
-                        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-                    ">Haydi Hep Beraber</span>
+            <div class="header-content" style="display: flex; align-items: center; gap: 1.5rem;">
+                <!-- Logo + Branding -->
+                <a href="/" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; cursor: pointer;">
+                    <img src="/assets/images/logo-icon.svg" alt="HHB" style="height: 28px;">
+                    <span style="font-size: 1rem; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.3px; white-space: nowrap;">Haydi Hep Beraber</span>
                 </a>
-                <nav class="nav" id="mainNav" style="margin-left: 3rem; flex: 1;">
-                    <a href="/" class="nav-link <%= activePage === 'home' ? 'active' : '' %>">Ana Sayfa</a>
-                    <a href="/challenges" class="nav-link <%= activePage === 'challenges' ? 'active' : '' %>">Meydan Okumalar</a>
-                    <a href="/leaderboard" class="nav-link <%= activePage === 'leaderboard' ? 'active' : '' %>">🏆 Liderlik</a>
-                    <div id="authButtons" style="margin-left: auto; display: flex; gap: 1rem; align-items: center;"></div>
+
+                <!-- Navigation -->
+                <nav style="display: flex; align-items: center; gap: 0.3rem; flex: 1;">
+                    <a href="/challenges" style="padding: 0.4rem 0.8rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.85rem; color: <%= activePage === 'challenges' ? 'var(--primary)' : 'var(--text-light)' %>; background: <%= activePage === 'challenges' ? 'rgba(99, 102, 241, 0.1)' : 'transparent' %>; transition: all 0.2s; white-space: nowrap;" onmouseover="if(this.style.background === 'transparent') this.style.background='rgba(0,0,0,0.03)';" onmouseout="if('<%= activePage %>' !== 'challenges') this.style.background='transparent';">Meydan Okumalar</a>
+                    <a href="/leaderboard" style="padding: 0.4rem 0.8rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.85rem; color: <%= activePage === 'leaderboard' ? 'var(--primary)' : 'var(--text-light)' %>; background: <%= activePage === 'leaderboard' ? 'rgba(99, 102, 241, 0.1)' : 'transparent' %>; transition: all 0.2s; white-space: nowrap;" onmouseover="if(this.style.background === 'transparent') this.style.background='rgba(0,0,0,0.03)';" onmouseout="if('<%= activePage %>' !== 'leaderboard') this.style.background='transparent';">Liderlik</a>
                 </nav>
+
+                <!-- Auth Buttons -->
+                <div id="authButtons" style="display: flex; gap: 0.4rem; align-items: center;"></div>
             </div>
         </div>
     </header>
