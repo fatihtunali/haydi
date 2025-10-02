@@ -1,6 +1,7 @@
 const { pool } = require('../config/database');
 const { moderateSubmission, calculatePoints } = require('../services/aiModeration');
 const { createNotification } = require('./notificationController');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 // Challenge için submission'ları listele
 async function getSubmissions(req, res) {
@@ -299,6 +300,9 @@ async function addComment(req, res) {
                 `/challenge/${submission.challenge_id}`
             );
         }
+
+        // Badge kontrolü yap (yorum badge'leri için)
+        await checkAndAwardBadges(req.user.id, 'comment_count');
 
         res.status(201).json({
             message: 'Yorum eklendi',

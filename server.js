@@ -13,6 +13,7 @@ const adminRoutes = require('./backend/routes/admin');
 const teamRoutes = require('./backend/routes/teams');
 const leaderboardRoutes = require('./backend/routes/leaderboard');
 const notificationRoutes = require('./backend/routes/notifications');
+const badgeRoutes = require('./backend/routes/badges');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -109,6 +110,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/badges', badgeRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -259,3 +259,18 @@ const NotificationAPI = {
         });
     }
 };
+
+// Badge API
+const BadgeAPI = {
+    getMyBadges: async () => {
+        return apiRequest('/badges/my');
+    },
+
+    getAllBadges: async () => {
+        return apiRequest('/badges/all');
+    },
+
+    getBadgeStats: async (badgeId) => {
+        return apiRequest(`/badges/${badgeId}/stats`);
+    }
+};

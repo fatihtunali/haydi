@@ -5,6 +5,7 @@ let userChallenges = [];
 let userSubmissions = [];
 let userTeams = [];
 let myChallenges = []; // Kullanıcının oluşturduğu challenge'lar
+let userBadges = []; // Kullanıcının badge'leri
 let activeTab = 'info'; // 'info', 'challenges', 'submissions', 'teams', 'created-challenges'
 
 // Global refresh fonksiyonu - diğer sayfalarda takım değişikliklerinden sonra çağrılabilir
@@ -51,6 +52,7 @@ async function loadProfile() {
         await loadUserSubmissions();
         await loadUserTeams();
         await loadMyChallenges();
+        await loadUserBadges();
 
         // Profil HTML'ini oluştur
         renderProfile();
@@ -103,6 +105,10 @@ function renderProfile() {
                         <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.5rem; border-radius: 12px; backdrop-filter: blur(10px);">
                             <div style="font-size: 28px; font-weight: bold;" id="challengeCount">0</div>
                             <div style="font-size: 14px; opacity: 0.9;">Meydan Okuma</div>
+                        </div>
+                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.5rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 28px; font-weight: bold;">${userBadges.filter(b => b.earned).length}</div>
+                            <div style="font-size: 14px; opacity: 0.9;">Rozet</div>
                         </div>
                     </div>
                 </div>
@@ -160,6 +166,9 @@ function renderProfile() {
 // Genel Bilgiler Tab'ını render et
 function renderInfoTab() {
     const user = currentUser;
+    const earnedBadges = userBadges.filter(b => b.earned);
+    const unearnedBadges = userBadges.filter(b => !b.earned);
+
     return `
         <div style="display: grid; gap: 1.5rem;">
             <div>
@@ -176,6 +185,34 @@ function renderInfoTab() {
                     hour: '2-digit',
                     minute: '2-digit'
                 })}</div>
+            </div>
+
+            <!-- Rozetler Bölümü -->
+            <div style="margin-top: 1rem; padding-top: 2rem; border-top: 2px solid var(--border);">
+                <label style="display: block; color: var(--text); font-size: 18px; margin-bottom: 1rem; font-weight: 600;">🏆 Rozetlerim (${earnedBadges.length}/${userBadges.length})</label>
+
+                ${earnedBadges.length > 0 ? `
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 14px; color: var(--text-light); margin-bottom: 0.75rem; font-weight: 600;">✅ Kazanılan Rozetler</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem;">
+                            ${earnedBadges.map(badge => renderBadgeCard(badge, true)).join('')}
+                        </div>
+                    </div>
+                ` : `
+                    <div style="padding: 2rem; text-align: center; background: rgba(99, 102, 241, 0.05); border-radius: 12px; margin-bottom: 1.5rem;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🏆</div>
+                        <p style="color: var(--text-light); margin: 0;">Henüz rozet kazanmadınız. Challenge'lara katılın ve rozetler kazanın!</p>
+                    </div>
+                `}
+
+                ${unearnedBadges.length > 0 ? `
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light); margin-bottom: 0.75rem; font-weight: 600;">🔒 Kazanılmamış Rozetler</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem;">
+                            ${unearnedBadges.map(badge => renderBadgeCard(badge, false)).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
 
             <div style="margin-top: 1rem; padding-top: 2rem; border-top: 2px solid var(--border);">
@@ -923,6 +960,77 @@ async function handleProfileUpdate(e) {
         submitBtn.disabled = false;
         submitBtn.textContent = '💾 Kaydet';
     }
+}
+
+// Kullanıcının badge'lerini yükle
+async function loadUserBadges() {
+    try {
+        const data = await BadgeAPI.getAllBadges();
+        userBadges = data.badges || [];
+    } catch (error) {
+        console.error('Badge\'ler yüklenemedi:', error);
+        userBadges = [];
+    }
+}
+
+// Badge kartını render et
+function renderBadgeCard(badge, isEarned) {
+    const rarityColors = {
+        'common': '#6b7280',
+        'rare': '#3b82f6',
+        'epic': '#a855f7',
+        'legendary': '#f59e0b'
+    };
+
+    const rarityLabels = {
+        'common': 'Yaygın',
+        'rare': 'Nadir',
+        'epic': 'Epik',
+        'legendary': 'Efsanevi'
+    };
+
+    const rarityColor = rarityColors[badge.rarity] || rarityColors.common;
+    const rarityLabel = rarityLabels[badge.rarity] || rarityLabels.common;
+
+    return `
+        <div style="
+            background: ${isEarned ? 'var(--card-bg)' : 'rgba(107, 114, 128, 0.1)'};
+            border: 2px solid ${isEarned ? rarityColor : 'var(--border)'};
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            ${isEarned ? 'cursor: pointer;' : ''}
+            ${!isEarned ? 'opacity: 0.5;' : ''}
+        "
+        ${isEarned ? `onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.15)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"` : ''}
+        title="${badge.description} ${!isEarned ? '- Henüz kazanılmadı' : ''}">
+
+            ${!isEarned ? '<div style="position: absolute; top: 0.5rem; right: 0.5rem; font-size: 1rem;">🔒</div>' : ''}
+
+            <div style="font-size: 3rem; margin-bottom: 0.5rem; ${!isEarned ? 'filter: grayscale(100%);' : ''}">${badge.icon}</div>
+
+            <div style="font-weight: 600; font-size: 0.9rem; color: ${isEarned ? 'var(--text)' : 'var(--text-light)'}; margin-bottom: 0.25rem;">
+                ${badge.name}
+            </div>
+
+            <div style="font-size: 0.75rem; color: ${rarityColor}; font-weight: 600; margin-bottom: 0.5rem;">
+                ${rarityLabel}
+            </div>
+
+            <div style="font-size: 0.75rem; color: var(--text-light); line-height: 1.3;">
+                ${badge.description}
+            </div>
+
+            ${isEarned && badge.earned_at ? `
+                <div style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border);">
+                    📅 ${new Date(badge.earned_at).toLocaleDateString('tr-TR')}
+                </div>
+            ` : ''}
+        </div>
+    `;
 }
 
 // Sayfa yüklendiğinde

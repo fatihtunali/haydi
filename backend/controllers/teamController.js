@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 // Challenge için takımları listele
 async function getTeams(req, res) {
@@ -152,6 +153,9 @@ async function createTeam(req, res) {
                 [challengeId, req.user.id, teamId, 'aktif']
             );
         }
+
+        // Badge kontrolü yap (takım oluşturma badge'leri için)
+        await checkAndAwardBadges(req.user.id, 'team_create');
 
         res.status(201).json({
             message: 'Takım oluşturuldu',

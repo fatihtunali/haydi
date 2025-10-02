@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const { checkAndAwardBadges } = require('../services/badgeService');
 
 // ===== DASHBOARD İSTATİSTİKLERİ =====
 
@@ -201,6 +202,19 @@ async function approveSubmission(req, res) {
                 `/challenge/${submission.challenge_id}`
             ]
         );
+
+        // Badge kontrolü yap (submission ve like_count badge'leri için)
+        await checkAndAwardBadges(submission.user_id, 'submission_count');
+        await checkAndAwardBadges(submission.user_id, 'like_count');
+
+        // Challenge tamamlama - ilk onaylanan submission ile challenge tamamlanmış sayılır
+        await pool.query(
+            'UPDATE participants SET status = ? WHERE challenge_id = ? AND user_id = ? AND status = ?',
+            ['tamamlandi', submission.challenge_id, submission.user_id, 'aktif']
+        );
+
+        // Challenge tamamlama badge kontrolü
+        await checkAndAwardBadges(submission.user_id, 'challenge_complete');
 
         res.json({
             message: 'Gönderi onaylandı',
