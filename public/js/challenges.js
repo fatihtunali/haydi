@@ -34,7 +34,8 @@ async function loadChallenges(params = {}) {
 
     try {
         const data = await ChallengeAPI.getAll({
-            limit: 100, // Tüm challenge'ları çek
+            status: '', // Tüm statuslerdeki challenge'ları çek
+            limit: 100,
             ...params
         });
 

@@ -2,13 +2,14 @@ const { pool } = require('../config/database');
 
 // Tüm challenge'ları listele
 async function getAllChallenges(req, res) {
-    const { status = 'aktif', category, limit = 20, offset = 0 } = req.query;
+    const { status, category, limit = 100, offset = 0 } = req.query;
 
     try {
         let query = `
             SELECT
                 c.*,
                 cat.name as category_name,
+                cat.slug as category_slug,
                 cat.icon as category_icon,
                 u.username as creator_username,
                 COUNT(DISTINCT p.id) as participant_count
@@ -16,14 +17,26 @@ async function getAllChallenges(req, res) {
             LEFT JOIN categories cat ON c.category_id = cat.id
             LEFT JOIN users u ON c.creator_id = u.id
             LEFT JOIN participants p ON c.id = p.challenge_id AND p.status = 'aktif'
-            WHERE c.status = ?
         `;
 
-        const params = [status];
+        const params = [];
+        const conditions = [];
 
+        // Status filtresi (opsiyonel)
+        if (status) {
+            conditions.push('c.status = ?');
+            params.push(status);
+        }
+
+        // Kategori filtresi (opsiyonel)
         if (category) {
-            query += ' AND cat.slug = ?';
+            conditions.push('cat.slug = ?');
             params.push(category);
+        }
+
+        // WHERE clause ekle (eğer koşul varsa)
+        if (conditions.length > 0) {
+            query += ' WHERE ' + conditions.join(' AND ');
         }
 
         query += ' GROUP BY c.id ORDER BY c.created_at DESC LIMIT ? OFFSET ?';
