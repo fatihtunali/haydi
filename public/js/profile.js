@@ -3,7 +3,8 @@
 let currentUser = null;
 let userChallenges = [];
 let userSubmissions = [];
-let activeTab = 'info'; // 'info', 'challenges', veya 'submissions'
+let userTeams = [];
+let activeTab = 'info'; // 'info', 'challenges', 'submissions', veya 'teams'
 
 async function loadProfile() {
     const profileContent = document.getElementById('profileContent');
@@ -31,9 +32,10 @@ async function loadProfile() {
         const data = await response.json();
         currentUser = data.user;
 
-        // Kullanıcının challenge'larını ve submission'larını yükle (render'dan ÖNCE)
+        // Kullanıcının challenge'larını, submission'larını ve takımlarını yükle (render'dan ÖNCE)
         await loadUserChallenges();
         await loadUserSubmissions();
+        await loadUserTeams();
 
         // Profil HTML'ini oluştur
         renderProfile();
@@ -110,11 +112,18 @@ function renderProfile() {
                         style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'submissions' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'submissions' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
                         📸 Gönderilerim (${userSubmissions.length})
                     </button>
+                    <button
+                        onclick="switchTab('teams')"
+                        id="tab-teams"
+                        class="profile-tab ${activeTab === 'teams' ? 'active' : ''}"
+                        style="flex: 1; padding: 1.25rem; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; color: ${activeTab === 'teams' ? 'var(--primary)' : 'var(--text-light)'}; border-bottom: 3px solid ${activeTab === 'teams' ? 'var(--primary)' : 'transparent'}; transition: all 0.3s;">
+                        👥 Takımlarım (${userTeams.length})
+                    </button>
                 </div>
 
                 <!-- Tab Content -->
                 <div id="tabContent" style="padding: 2rem;">
-                    ${activeTab === 'info' ? renderInfoTab() : (activeTab === 'challenges' ? renderChallengesTab() : renderSubmissionsTab())}
+                    ${activeTab === 'info' ? renderInfoTab() : (activeTab === 'challenges' ? renderChallengesTab() : (activeTab === 'submissions' ? renderSubmissionsTab() : renderTeamsTab()))}
                 </div>
             </div>
         </div>
@@ -301,6 +310,44 @@ async function loadUserSubmissions() {
     }
 }
 
+// Kullanıcının takımlarını yükle
+async function loadUserTeams() {
+    try {
+        // Kullanıcının katıldığı tüm takım challenge'larını al
+        const teamChallenges = userChallenges.filter(c => c.is_team_based);
+
+        // Her takım challenge için takım bilgilerini çek
+        const teamPromises = teamChallenges.map(async (challenge) => {
+            try {
+                const teams = await TeamAPI.getByChallenge(challenge.id);
+                // Kullanıcının üye olduğu takımı bul
+                const userTeam = teams.teams.find(team =>
+                    team.members && team.members.some(member => member.user_id === currentUser.id)
+                );
+                if (userTeam) {
+                    return {
+                        ...userTeam,
+                        challenge_title: challenge.title,
+                        challenge_id: challenge.id,
+                        challenge_icon: challenge.category_icon
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error(`Takım bilgisi yüklenemedi (challenge ${challenge.id}):`, error);
+                return null;
+            }
+        });
+
+        const teams = await Promise.all(teamPromises);
+        userTeams = teams.filter(t => t !== null);
+
+    } catch (error) {
+        console.error('Takım sayısı yüklenemedi:', error);
+        userTeams = [];
+    }
+}
+
 // Gönderilerim Tab'ını render et
 function renderSubmissionsTab() {
     if (userSubmissions.length === 0) {
@@ -420,6 +467,108 @@ async function deleteSubmission(submissionId) {
 
     } catch (error) {
         showError(error.message || 'Gönderi silinirken bir hata oluştu');
+    }
+}
+
+// Takımlarım Tab'ını render et
+function renderTeamsTab() {
+    if (userTeams.length === 0) {
+        return `
+            <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <p style="margin: 1rem 0;">Henüz bir takıma katılmadınız</p>
+                <a href="/challenges?team=team" class="btn btn-primary">Takım Meydan Okumalarına Göz At</a>
+            </div>
+        `;
+    }
+
+    return `
+        <div style="display: grid; gap: 1.5rem;">
+            ${userTeams.map(team => renderTeamCard(team)).join('')}
+        </div>
+    `;
+}
+
+// Takım kartını render et
+function renderTeamCard(team) {
+    const isCaptain = team.captain_id === currentUser.id;
+    const memberCount = team.members.length;
+
+    return `
+        <div style="
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid ${isCaptain ? 'var(--primary)' : 'var(--border)'};
+            transition: all 0.3s;
+        " onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateX(5px)';"
+           onmouseout="this.style.borderColor='${isCaptain ? 'var(--primary)' : 'var(--border)'}'; this.style.transform='translateX(0)';">
+
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; gap: 1rem;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                        ${team.challenge_icon ? `<span style="font-size: 1.5rem;">${team.challenge_icon}</span>` : ''}
+                        <h3 style="margin: 0; font-size: 1.25rem; color: var(--text);">${team.name}</h3>
+                        ${isCaptain ? '<span style="padding: 0.25rem 0.75rem; background: var(--primary); color: white; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">👑 Kaptan</span>' : ''}
+                    </div>
+                    <p style="margin: 0.5rem 0; color: var(--text-light); font-size: 0.9rem;">
+                        ${team.challenge_title}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Takım Üyeleri -->
+            <div style="margin: 1rem 0; padding: 1rem; background: rgba(99, 102, 241, 0.05); border-radius: 8px;">
+                <div style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem;">Takım Üyeleri (${memberCount})</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    ${team.members.map(member => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border);">
+                            ${member.avatar_url
+                                ? `<img src="${member.avatar_url}" alt="${member.username}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">`
+                                : `<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">${member.username.charAt(0).toUpperCase()}</div>`
+                            }
+                            <span style="font-size: 0.85rem; color: var(--text);">
+                                ${member.username}
+                                ${member.user_id === team.captain_id ? ' 👑' : ''}
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <a href="/challenge/${team.challenge_id}" class="btn btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
+                    🎯 Challenge'a Git
+                </a>
+                ${!isCaptain ? `
+                    <button onclick="leaveTeamFromProfile(${team.id}, ${team.challenge_id})" class="btn btn-danger" style="flex: 1;">
+                        🚪 Takımdan Ayrıl
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
+// Profil sayfasından takımdan ayrıl
+async function leaveTeamFromProfile(teamId, challengeId) {
+    if (!confirm('Takımdan ayrılmak istediğinize emin misiniz?')) {
+        return;
+    }
+
+    try {
+        await TeamAPI.leave(teamId);
+        showSuccess('Takımdan ayrıldınız');
+
+        // Takım listesini ve challenge listesini yenile
+        await loadUserChallenges();
+        await loadUserTeams();
+        renderProfile();
+
+    } catch (error) {
+        showError(error.message || 'Takımdan ayrılırken bir hata oluştu');
     }
 }
 

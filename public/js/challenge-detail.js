@@ -649,7 +649,7 @@ async function loadTeams(challengeId) {
         // Kullanıcının takımını bul
         if (isLoggedIn()) {
             const userId = getCurrentUserId();
-            userTeam = teams.find(t => t.members && t.members.some(m => m.id === userId));
+            userTeam = teams.find(t => t.members && t.members.some(m => m.user_id === userId));
         }
 
         renderTeams();
@@ -666,10 +666,23 @@ function renderTeams() {
 
     if (!teamsContainer) return;
 
+    // Takım işlemleri için durum kontrolü
+    const canManageTeam = isLoggedIn() && isParticipant;
+    const needsLogin = !isLoggedIn();
+    const needsParticipation = isLoggedIn() && !isParticipant;
+
     const content = `
-        <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">👥 Takımlar</h3>
-            ${!userTeam && isLoggedIn() ? `
+            ${needsLogin ? `
+                <div style="padding: 0.5rem 1rem; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; font-size: 0.85rem; color: #f59e0b;">
+                    💡 Takım kurmak için önce giriş yapın
+                </div>
+            ` : needsParticipation ? `
+                <div style="padding: 0.5rem 1rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; font-size: 0.85rem; color: #6366f1;">
+                    💡 Takım kurmak için önce challenge'a katılın
+                </div>
+            ` : !userTeam ? `
                 <button onclick="showCreateTeamModal()" class="btn btn-primary btn-small">
                     + Takım Oluştur
                 </button>
@@ -680,19 +693,19 @@ function renderTeams() {
             <div class="empty-state" style="padding: 2rem;">
                 <div class="empty-icon">👥</div>
                 <p>Henüz takım yok</p>
-                ${isLoggedIn() ? '<p style="font-size: 0.9rem; color: var(--text-light);">İlk takımı sen oluştur!</p>' : ''}
+                ${canManageTeam ? '<p style="font-size: 0.9rem; color: var(--text-light);">İlk takımı sen oluştur!</p>' : ''}
             </div>
         ` : `
             <div style="display: grid; gap: 1rem;">
                 ${teams.map(team => `
                     <div style="background: ${userTeam && userTeam.id === team.id ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(16, 185, 129, 0.05))' : 'var(--card-bg)'}; padding: 1.5rem; border-radius: 12px; border: 2px solid ${userTeam && userTeam.id === team.id ? 'var(--primary)' : 'var(--border)'};">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                            <div>
-                                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                                     ${team.name}
                                     ${userTeam && userTeam.id === team.id ? '<span style="font-size: 0.75rem; padding: 0.25rem 0.75rem; background: var(--primary); color: white; border-radius: 12px;">Takımınız</span>' : ''}
                                 </h4>
-                                <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-light);">
+                                <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-light); flex-wrap: wrap;">
                                     <span>👤 Kaptan: ${team.captain_username}</span>
                                     <span>👥 ${team.member_count} üye</span>
                                     <span>🏆 ${team.total_points} puan</span>
@@ -702,7 +715,7 @@ function renderTeams() {
                                 <button onclick="leaveTeam(${team.id})" class="btn btn-danger btn-small">
                                     Ayrıl
                                 </button>
-                            ` : !userTeam && isLoggedIn() ? `
+                            ` : !userTeam && canManageTeam ? `
                                 <button onclick="joinTeam(${team.id})" class="btn btn-primary btn-small">
                                     Katıl
                                 </button>

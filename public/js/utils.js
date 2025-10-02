@@ -87,6 +87,12 @@ function getUser() {
     return userStr ? JSON.parse(userStr) : null;
 }
 
+// Kullanıcı ID'sini al
+function getCurrentUserId() {
+    const user = getUser();
+    return user ? user.id : null;
+}
+
 // Logout
 function logout() {
     localStorage.removeItem('token');

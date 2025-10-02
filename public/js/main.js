@@ -3,6 +3,7 @@
 // Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', async () => {
     await loadFeed();
+    await loadTeamChallenges(); // Takım challenge'larını yükle
     await loadCategories();
     await loadFeaturedChallenges();
     await loadStats();
@@ -29,6 +30,32 @@ async function loadFeed() {
     } catch (error) {
         console.error('Feed yükleme hatası:', error);
         feedContainer.innerHTML = `<p>Gönderiler yüklenirken bir hata oluştu</p>`;
+    }
+}
+
+// Takım challenge'larını yükle
+async function loadTeamChallenges() {
+    const teamChallenges = document.getElementById('teamChallenges');
+    if (!teamChallenges) return;
+
+    showLoading(teamChallenges);
+
+    try {
+        const data = await ChallengeAPI.getAll({ status: 'aktif', limit: 6 });
+        const challenges = data.challenges.filter(c => c.is_team_based);
+
+        if (challenges.length === 0) {
+            showEmptyState(teamChallenges, '👥', 'Henüz takım meydan okuması yok');
+            return;
+        }
+
+        teamChallenges.innerHTML = challenges.map(challenge =>
+            createChallengeCard(challenge)
+        ).join('');
+
+    } catch (error) {
+        console.error('Takım challenge yükleme hatası:', error);
+        teamChallenges.innerHTML = `<p>Takım meydan okumaları yüklenemedi</p>`;
     }
 }
 
@@ -142,7 +169,7 @@ function createChallengeCard(challenge) {
                     ` : ''}
                     ${challenge.is_team_based ? `
                         <span style="padding: 0.25rem 0.75rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; color: #6366f1; font-weight: 600; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
-                            👥 Takım
+                            👥 Takım (${challenge.min_team_size}-${challenge.max_team_size} kişi)
                         </span>
                     ` : `
                         <span style="padding: 0.25rem 0.75rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: #10b981; font-weight: 600; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem;">
@@ -153,6 +180,13 @@ function createChallengeCard(challenge) {
                         👥 ${participantCount} katılımcı
                     </span>
                 </div>
+                ${challenge.is_team_based ? `
+                    <div style="margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(99, 102, 241, 0.05); border-left: 3px solid #6366f1; border-radius: 4px;">
+                        <p style="margin: 0; font-size: 0.8rem; color: #6366f1;">
+                            💡 <strong>Takım Challenge:</strong> Katılın, takım kurun veya bir takıma katılın!
+                        </p>
+                    </div>
+                ` : ''}
             </div>
 
             <!-- Sağ: Puan ve Süre -->

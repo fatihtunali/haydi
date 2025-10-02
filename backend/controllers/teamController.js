@@ -19,6 +19,22 @@ async function getTeams(req, res) {
             ORDER BY t.total_points DESC, t.created_at DESC
         `, [challengeId]);
 
+        // Her takım için üyeleri getir
+        for (let team of teams) {
+            const [members] = await pool.query(`
+                SELECT
+                    u.id as user_id,
+                    u.username,
+                    u.avatar_url,
+                    p.points_earned
+                FROM participants p
+                JOIN users u ON p.user_id = u.id
+                WHERE p.team_id = ? AND p.status = 'aktif'
+                ORDER BY p.points_earned DESC
+            `, [team.id]);
+            team.members = members;
+        }
+
         res.json({ teams });
 
     } catch (error) {
