@@ -556,8 +556,28 @@ body {
     color: #d97706;
 }
 
+/* Feed Grid - Instagram Style */
+.feed-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .feed-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+    /* Feed Grid - Mobile: 1 column */
+    .feed-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
     /* Container padding for mobile */
     .container {
         padding: 0 15px;

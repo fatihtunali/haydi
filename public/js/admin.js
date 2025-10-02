@@ -222,49 +222,86 @@ function renderSubmissions() {
 
     return `
         <div style="display: grid; gap: 1.5rem;">
-            ${submissionsData.map(s => `
-                <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid var(--primary);">
-                    <div style="display: grid; grid-template-columns: ${s.media_url ? '200px 1fr auto' : '1fr auto'}; gap: 1.5rem; align-items: start;">
+            ${submissionsData.map(s => {
+                // AI önerisi rengini belirle
+                const aiRecommendationColor = {
+                    'approve': '#10b981',
+                    'reject': '#ef4444',
+                    'manual': '#f59e0b'
+                }[s.ai_recommendation] || '#94a3b8';
 
-                        ${s.media_url ? `
-                            <img src="${s.media_url}" style="width: 200px; height: 150px; object-fit: cover; border-radius: 8px;">
-                        ` : ''}
+                const aiRecommendationText = {
+                    'approve': '✅ AI Önerisi: Onayla',
+                    'reject': '❌ AI Önerisi: Reddet',
+                    'manual': '🤔 AI Önerisi: Manuel İnceleme'
+                }[s.ai_recommendation] || 'AI analizi yok';
 
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-                                <span style="font-weight: 700; color: var(--primary);">${s.challenge_title}</span>
-                                <span class="challenge-difficulty difficulty-${s.difficulty}">${s.difficulty}</span>
+                return `
+                    <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid ${aiRecommendationColor};">
+                        <div style="display: grid; grid-template-columns: ${s.media_url ? '200px 1fr auto' : '1fr auto'}; gap: 1.5rem; align-items: start;">
+
+                            ${s.media_url ? `
+                                <img src="${s.media_url}" style="width: 200px; height: 150px; object-fit: cover; border-radius: 8px;">
+                            ` : ''}
+
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                    <span style="font-weight: 700; color: var(--primary);">${s.challenge_title}</span>
+                                    <span class="challenge-difficulty difficulty-${s.difficulty}">${s.difficulty}</span>
+                                </div>
+
+                                <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">
+                                    Gönderen: <strong>${s.username}</strong> (${s.email})
+                                </div>
+
+                                ${s.location ? `<div style="margin-bottom: 0.5rem;">📍 ${s.location}</div>` : ''}
+
+                                <!-- AI Analiz Sonucu -->
+                                ${s.ai_recommendation ? `
+                                    <div style="background: ${aiRecommendationColor}15; border: 1px solid ${aiRecommendationColor}40; border-radius: 8px; padding: 0.75rem; margin: 0.75rem 0;">
+                                        <div style="font-weight: 600; color: ${aiRecommendationColor}; margin-bottom: 0.5rem;">
+                                            🤖 ${aiRecommendationText}
+                                        </div>
+                                        ${s.ai_score ? `
+                                            <div style="font-size: 0.9rem; margin-bottom: 0.25rem;">
+                                                <strong>Kalite Skoru:</strong> ${s.ai_score}/100
+                                                <div style="background: #e5e7eb; height: 8px; border-radius: 4px; margin-top: 0.25rem; overflow: hidden;">
+                                                    <div style="background: ${aiRecommendationColor}; height: 100%; width: ${s.ai_score}%; transition: width 0.3s;"></div>
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                        ${s.ai_reason ? `
+                                            <div style="font-size: 0.85rem; color: var(--text); margin-top: 0.5rem;">
+                                                <strong>Açıklama:</strong> ${s.ai_reason}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                ` : ''}
+
+                                <p style="color: var(--text); line-height: 1.6; margin-top: 0.75rem;">
+                                    ${s.content || ''}
+                                </p>
+
+                                <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.75rem;">
+                                    📅 ${new Date(s.created_at).toLocaleString('tr-TR')}
+                                </div>
                             </div>
 
-                            <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">
-                                Gönderen: <strong>${s.username}</strong> (${s.email})
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button onclick="approveSubmission(${s.id})" class="btn btn-primary" style="white-space: nowrap;">
+                                    ✅ Onayla
+                                </button>
+                                <button onclick="rejectSubmission(${s.id})" class="btn btn-danger" style="white-space: nowrap;">
+                                    ❌ Reddet
+                                </button>
+                                <button onclick="deleteSubmissionAdmin(${s.id})" class="btn btn-secondary" style="white-space: nowrap;">
+                                    🗑️ Sil
+                                </button>
                             </div>
-
-                            ${s.location ? `<div style="margin-bottom: 0.5rem;">📍 ${s.location}</div>` : ''}
-
-                            <p style="color: var(--text); line-height: 1.6; margin-top: 0.75rem;">
-                                ${s.content || ''}
-                            </p>
-
-                            <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.75rem;">
-                                ${new Date(s.created_at).toLocaleString('tr-TR')}
-                            </div>
-                        </div>
-
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <button onclick="approveSubmission(${s.id})" class="btn btn-primary" style="white-space: nowrap;">
-                                ✅ Onayla
-                            </button>
-                            <button onclick="rejectSubmission(${s.id})" class="btn btn-danger" style="white-space: nowrap;">
-                                ❌ Reddet
-                            </button>
-                            <button onclick="deleteSubmissionAdmin(${s.id})" class="btn btn-secondary" style="white-space: nowrap;">
-                                🗑️ Sil
-                            </button>
                         </div>
                     </div>
-                </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     `;
 }

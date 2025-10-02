@@ -87,9 +87,13 @@ async function createSubmission(req, res) {
             return res.status(403).json({ error: 'Bu challenge\'a katılmadınız' });
         }
 
-        // Challenge bilgilerini al (puanlama ve kural kontrolü için)
+        // Challenge bilgilerini al (kategori bilgisi ile birlikte)
         const [challenges] = await pool.query(
-            'SELECT title, rules, points, difficulty FROM challenges WHERE id = ?',
+            `SELECT c.title, c.rules, c.points, c.difficulty, c.category_id,
+                    cat.name as category_name, cat.slug as category_slug
+             FROM challenges c
+             LEFT JOIN categories cat ON c.category_id = cat.id
+             WHERE c.id = ?`,
             [challengeId]
         );
 
@@ -105,95 +109,73 @@ async function createSubmission(req, res) {
             finalMediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'resim';
         }
 
-        // 🤖 AI MODERATION - İçeriği kontrol et
+        // 🤖 AI MODERATION - İçeriği kontrol et (kategori bilgisi ile)
         const moderationResult = await moderateSubmission(
             content,
             media_url,
-            challenge.rules
+            challenge.rules,
+            challenge.category_slug,
+            challenge.title
         );
 
+        // AI sadece analiz yapar, tüm gönderiler manuel onay bekler
         let submissionStatus = 'beklemede';
         let pointsAwarded = 0;
+        let aiRecommendation = 'manual';
 
+        // AI önerisini belirle
         if (moderationResult.approved === false) {
-            // ❌ Reddedildi
-            submissionStatus = 'reddedildi';
-            console.log('❌ Submission reddedildi:', moderationResult.reason);
+            aiRecommendation = 'reject';
+            console.log('🤖 AI önerisi: Reddet -', moderationResult.reason);
         } else if (moderationResult.approved === true) {
-            // ✅ Onaylandı
-            submissionStatus = 'onaylandi';
-
-            // Zorluk çarpanı
-            const difficultyMultiplier = {
-                'kolay': 1.0,
-                'orta': 1.5,
-                'zor': 2.0
-            }[challenge.difficulty] || 1.0;
-
-            // Puan hesapla
-            pointsAwarded = calculatePoints(
-                challenge.points,
-                moderationResult.score,
-                difficultyMultiplier
-            );
-
-            console.log('✅ Submission onaylandı! Puan:', pointsAwarded);
+            aiRecommendation = 'approve';
+            console.log('🤖 AI önerisi: Onayla - Skor:', moderationResult.score);
         } else {
-            // ⏳ Manuel kontrol gerekli
-            submissionStatus = 'beklemede';
-            console.log('⏳ Submission manuel kontrol bekliyor');
+            aiRecommendation = 'manual';
+            console.log('🤖 AI önerisi: Manuel kontrol gerekli');
         }
 
-        // Submission ekle
+        // Submission ekle (AI bilgileri ile birlikte)
         const [result] = await pool.query(`
-            INSERT INTO submissions (challenge_id, user_id, content, location, media_url, media_type, status, points_awarded)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [challengeId, req.user.id, content || null, location || null, media_url, finalMediaType || 'resim', submissionStatus, pointsAwarded]);
+            INSERT INTO submissions (
+                challenge_id, user_id, content, location, media_url, media_type,
+                status, points_awarded, ai_score, ai_reason, ai_recommendation
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            challengeId,
+            req.user.id,
+            content || null,
+            location || null,
+            media_url,
+            finalMediaType || 'resim',
+            submissionStatus,
+            pointsAwarded,
+            moderationResult.score || null,
+            moderationResult.reason || null,
+            aiRecommendation
+        ]);
 
-        // Eğer onaylandıysa kullanıcıya puan ekle
-        if (submissionStatus === 'onaylandi' && pointsAwarded > 0) {
-            await pool.query(
-                'UPDATE users SET points = points + ? WHERE id = ?',
-                [pointsAwarded, req.user.id]
-            );
-
-            await pool.query(
-                'UPDATE participants SET points_earned = points_earned + ? WHERE challenge_id = ? AND user_id = ?',
-                [pointsAwarded, challengeId, req.user.id]
-            );
-        }
-
-        // Bildirim oluştur (database'de notifications tablosu var)
-        let notificationMessage = '';
-        if (submissionStatus === 'onaylandi') {
-            notificationMessage = `Gönderiniz "${challenge.title}" için onaylandı! +${pointsAwarded} puan kazandınız! 🎉`;
-        } else if (submissionStatus === 'reddedildi') {
-            notificationMessage = `Gönderiniz "${challenge.title}" için reddedildi. Sebep: ${moderationResult.reason}`;
-        } else {
-            notificationMessage = `Gönderiniz "${challenge.title}" için manuel kontrol bekliyor.`;
-        }
+        // Bildirim oluştur
+        const notificationMessage = `Gönderiniz "${challenge.title}" için AI analizi tamamlandı. Admin onayı bekleniyor. 🤖`;
 
         await pool.query(
             `INSERT INTO notifications (user_id, type, title, message, link)
              VALUES (?, ?, ?, ?, ?)`,
             [
                 req.user.id,
-                submissionStatus === 'onaylandi' ? 'submission_approved' : 'submission_status',
-                submissionStatus === 'onaylandi' ? '✅ Gönderi Onaylandı!' : submissionStatus === 'reddedildi' ? '❌ Gönderi Reddedildi' : '⏳ Gönderi Kontrol Ediliyor',
+                'submission_pending',
+                '⏳ Gönderi İnceleniyor',
                 notificationMessage,
                 `/challenge/${challengeId}`
             ]
         );
 
         res.status(201).json({
-            message: submissionStatus === 'onaylandi'
-                ? `Gönderiniz onaylandı! +${pointsAwarded} puan kazandınız! 🎉`
-                : submissionStatus === 'reddedildi'
-                ? `Gönderiniz reddedildi: ${moderationResult.reason}`
-                : 'Gönderiniz manuel kontrol bekliyor',
+            message: 'Gönderiniz admin onayı için incelemeye alındı! 🤖 AI analizi tamamlandı.',
             submission_id: result.insertId,
             status: submissionStatus,
-            points_awarded: pointsAwarded,
+            ai_recommendation: aiRecommendation,
             ai_score: moderationResult.score
         });
 

@@ -65,7 +65,8 @@ async function getAllSubmissions(req, res) {
                 u.username,
                 u.email,
                 c.title as challenge_title,
-                c.difficulty
+                c.difficulty,
+                c.points as challenge_points
             FROM submissions s
             JOIN users u ON s.user_id = u.id
             JOIN challenges c ON s.challenge_id = c.id
@@ -104,7 +105,7 @@ async function getAllSubmissions(req, res) {
 
 async function approveSubmission(req, res) {
     const { id } = req.params;
-    const { points } = req.body; // Manuel puan verme opsiyonu
+    const { points } = req.body; // Manuel puan verme opsiyonu (AI skorunu override eder)
 
     try {
         // Submission'ı al
@@ -127,18 +128,40 @@ async function approveSubmission(req, res) {
             [submission.challenge_id]
         );
 
-        // Puan hesapla
-        const difficultyMultiplier = {
-            'kolay': 1.0,
-            'orta': 1.5,
-            'zor': 2.0
-        }[challenge.difficulty] || 1.0;
+        // Puan hesapla - AI skoru varsa kullan, yoksa standart hesaplama
+        let pointsToAward;
 
-        const pointsToAward = points || Math.floor(challenge.points * difficultyMultiplier);
+        if (points) {
+            // Admin manuel puan verdiyse onu kullan
+            pointsToAward = points;
+        } else if (submission.ai_score && submission.ai_score > 0) {
+            // AI skoru varsa ona göre puan hesapla
+            const { calculatePoints } = require('../services/aiModeration');
+            const difficultyMultiplier = {
+                'kolay': 1.0,
+                'orta': 1.5,
+                'zor': 2.0
+            }[challenge.difficulty] || 1.0;
+
+            pointsToAward = calculatePoints(
+                challenge.points,
+                submission.ai_score,
+                difficultyMultiplier
+            );
+        } else {
+            // AI skoru yoksa standart hesaplama
+            const difficultyMultiplier = {
+                'kolay': 1.0,
+                'orta': 1.5,
+                'zor': 2.0
+            }[challenge.difficulty] || 1.0;
+
+            pointsToAward = Math.floor(challenge.points * difficultyMultiplier);
+        }
 
         // Submission'ı onayla ve puan ver
         await pool.query(
-            'UPDATE submissions SET status = ?, points_awarded = ? WHERE id = ?',
+            'UPDATE submissions SET status = ?, points_awarded = ?, reviewed_at = NOW() WHERE id = ?',
             ['onaylandi', pointsToAward, id]
         );
 
@@ -168,7 +191,8 @@ async function approveSubmission(req, res) {
 
         res.json({
             message: 'Gönderi onaylandı',
-            points_awarded: pointsToAward
+            points_awarded: pointsToAward,
+            ai_score: submission.ai_score
         });
 
     } catch (error) {
@@ -193,11 +217,13 @@ async function rejectSubmission(req, res) {
 
         // Submission'ı reddet
         await pool.query(
-            'UPDATE submissions SET status = ? WHERE id = ?',
+            'UPDATE submissions SET status = ?, reviewed_at = NOW() WHERE id = ?',
             ['reddedildi', id]
         );
 
         // Bildirim oluştur
+        const rejectReason = reason || submission.ai_reason || 'Kurallara uygun değil';
+
         await pool.query(
             `INSERT INTO notifications (user_id, type, title, message, link)
              VALUES (?, ?, ?, ?, ?)`,
@@ -205,12 +231,15 @@ async function rejectSubmission(req, res) {
                 submission.user_id,
                 'submission_rejected',
                 '❌ Gönderi Reddedildi',
-                `Gönderiniz reddedildi. ${reason ? 'Sebep: ' + reason : ''}`,
+                `Gönderiniz reddedildi. Sebep: ${rejectReason}`,
                 `/challenge/${submission.challenge_id}`
             ]
         );
 
-        res.json({ message: 'Gönderi reddedildi' });
+        res.json({
+            message: 'Gönderi reddedildi',
+            reason: rejectReason
+        });
 
     } catch (error) {
         console.error('Submission reddetme hatası:', error);

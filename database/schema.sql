@@ -99,11 +99,15 @@ CREATE TABLE IF NOT EXISTS submissions (
     user_id INT NOT NULL,
     team_id INT DEFAULT NULL,
     content TEXT,
+    location VARCHAR(255) DEFAULT NULL,
     media_url VARCHAR(255),
     media_type ENUM('resim', 'video', 'link', 'metin') DEFAULT 'metin',
     status ENUM('beklemede', 'onaylandi', 'reddedildi') DEFAULT 'beklemede',
     points_awarded INT DEFAULT 0,
     likes_count INT DEFAULT 0,
+    ai_score INT DEFAULT NULL COMMENT 'AI kalite skoru (0-100)',
+    ai_reason TEXT DEFAULT NULL COMMENT 'AI analiz açıklaması',
+    ai_recommendation ENUM('approve', 'reject', 'manual') DEFAULT NULL COMMENT 'AI önerisi',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reviewed_at TIMESTAMP NULL,
     FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
@@ -112,7 +116,8 @@ CREATE TABLE IF NOT EXISTS submissions (
     INDEX idx_challenge (challenge_id),
     INDEX idx_user (user_id),
     INDEX idx_status (status),
-    INDEX idx_created (created_at)
+    INDEX idx_created (created_at),
+    INDEX idx_ai_recommendation (ai_recommendation)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Beğeniler
