@@ -82,11 +82,16 @@ function renderProfile() {
                         : `<div style="width: 120px; height: 120px; border-radius: 50%; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; border: 4px solid white;">${user.username.charAt(0).toUpperCase()}</div>`
                     }
                     <div style="flex: 1;">
-                        <h1 style="margin: 0 0 0.5rem 0; font-size: 2rem;">
-                            ${user.full_name || user.username}
-                        </h1>
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                            <h1 style="margin: 0; font-size: 2rem;">
+                                ${user.full_name || user.username}
+                            </h1>
+                            <button onclick="openEditProfileModal()" style="padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; backdrop-filter: blur(10px); transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.2)';">
+                                ✏️ Düzenle
+                            </button>
+                        </div>
                         <p style="margin: 0 0 1rem 0; opacity: 0.9; font-size: 1.1rem;">@${user.username}</p>
-                        ${user.bio ? `<p style="margin: 0; opacity: 0.9;">${user.bio}</p>` : ''}
+                        ${user.bio ? `<p style="margin: 0; opacity: 0.9;">${user.bio}</p>` : '<p style="margin: 0; opacity: 0.7; font-style: italic;">Bio eklemek için profili düzenle</p>'}
                     </div>
 
                     <!-- İstatistikler -->
@@ -759,6 +764,165 @@ async function deleteCreatedChallenge(challengeId) {
 function switchTab(tab) {
     activeTab = tab;
     renderProfile();
+}
+
+// Profil düzenleme modalını aç
+function openEditProfileModal() {
+    const user = currentUser;
+
+    // Modal HTML
+    const modalHTML = `
+        <div id="editProfileModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+            <div style="background: var(--card-bg); border-radius: 16px; padding: 2rem; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0; color: var(--text);">✏️ Profili Düzenle</h2>
+                    <button onclick="closeEditProfileModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">×</button>
+                </div>
+
+                <form id="editProfileForm" style="display: grid; gap: 1.5rem;">
+                    <!-- Avatar -->
+                    <div style="text-align: center;">
+                        <div style="position: relative; display: inline-block;">
+                            ${user.avatar_url
+                                ? `<img id="avatarPreview" src="${user.avatar_url}" alt="Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--border);">`
+                                : `<div id="avatarPreview" style="width: 120px; height: 120px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; border: 4px solid var(--border);">${user.username.charAt(0).toUpperCase()}</div>`
+                            }
+                            <label for="avatarInput" style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid var(--card-bg); font-size: 1.2rem;">
+                                📷
+                            </label>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="handleAvatarChange(event)">
+                        </div>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--text-light);">Avatar değiştirmek için tıkla (Max 5MB)</p>
+                    </div>
+
+                    <!-- İsim -->
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">İsim</label>
+                        <input type="text" id="fullNameInput" value="${user.full_name || ''}" placeholder="İsminiz" maxlength="100" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text);">
+                    </div>
+
+                    <!-- Bio -->
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">Bio</label>
+                        <textarea id="bioInput" placeholder="Kendinizden bahsedin..." maxlength="500" rows="4" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text); resize: vertical;">${user.bio || ''}</textarea>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-light); text-align: right;"><span id="bioCounter">${(user.bio || '').length}</span>/500</p>
+                    </div>
+
+                    <!-- Butonlar -->
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button type="button" onclick="closeEditProfileModal()" class="btn btn-secondary" style="flex: 1;">İptal</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    // Modal'ı ekle
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Bio counter
+    document.getElementById('bioInput').addEventListener('input', (e) => {
+        document.getElementById('bioCounter').textContent = e.target.value.length;
+    });
+
+    // Form submit
+    document.getElementById('editProfileForm').addEventListener('submit', handleProfileUpdate);
+}
+
+// Modal'ı kapat
+function closeEditProfileModal() {
+    const modal = document.getElementById('editProfileModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Avatar değişikliği
+let selectedAvatarFile = null;
+function handleAvatarChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Dosya kontrolü
+    if (!file.type.startsWith('image/')) {
+        showError('Sadece resim dosyaları yüklenebilir');
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        showError('Avatar boyutu en fazla 5MB olabilir');
+        return;
+    }
+
+    selectedAvatarFile = file;
+
+    // Preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const preview = document.getElementById('avatarPreview');
+        if (preview.tagName === 'IMG') {
+            preview.src = e.target.result;
+        } else {
+            // Div ise img'e çevir
+            const img = document.createElement('img');
+            img.id = 'avatarPreview';
+            img.src = e.target.result;
+            img.style.cssText = 'width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--border);';
+            preview.replaceWith(img);
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+// Profil güncelleme
+async function handleProfileUpdate(e) {
+    e.preventDefault();
+
+    const fullName = document.getElementById('fullNameInput').value.trim();
+    const bio = document.getElementById('bioInput').value.trim();
+
+    try {
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Kaydediliyor...';
+
+        // Önce profil bilgilerini güncelle
+        const data = await AuthAPI.updateProfile({ full_name: fullName, bio });
+        currentUser = data.user;
+
+        // Avatar değiştiyse onu da güncelle
+        if (selectedAvatarFile) {
+            const formData = new FormData();
+            formData.append('avatar', selectedAvatarFile);
+            const avatarData = await AuthAPI.updateAvatar(formData);
+            currentUser = avatarData.user;
+        }
+
+        // LocalStorage'ı güncelle
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        storedUser.full_name = currentUser.full_name;
+        storedUser.bio = currentUser.bio;
+        storedUser.avatar_url = currentUser.avatar_url;
+        localStorage.setItem('user', JSON.stringify(storedUser));
+
+        showSuccess('Profil güncellendi!');
+        closeEditProfileModal();
+        renderProfile();
+
+        // Header'ı güncelle
+        if (window.updateAuthButtons) {
+            window.updateAuthButtons();
+        }
+
+        selectedAvatarFile = null;
+
+    } catch (error) {
+        showError(error.message || 'Profil güncellenirken bir hata oluştu');
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💾 Kaydet';
+    }
 }
 
 // Sayfa yüklendiğinde

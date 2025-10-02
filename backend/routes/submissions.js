@@ -10,7 +10,7 @@ const {
     getFeed
 } = require('../controllers/submissionController');
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 
 // Feed - Popüler gönderiler
 console.log('📍 Registering /feed route');

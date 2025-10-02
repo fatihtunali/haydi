@@ -91,6 +91,7 @@ async function updateUserInfo() {
 
 // Global olarak erişilebilir yap
 window.updateUserInfo = updateUserInfo;
+window.updateAuthButtons = updateAuthButtons;
 
 // Logout
 function handleLogout() {

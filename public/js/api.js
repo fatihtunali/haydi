@@ -25,6 +25,16 @@ async function apiRequest(endpoint, options = {}) {
             headers
         });
 
+        // Response'un content-type'ını kontrol et
+        const contentType = response.headers.get('content-type');
+
+        // Eğer JSON değilse
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Non-JSON response:', text.substring(0, 200));
+            throw new Error('Sunucu beklenmedik bir yanıt döndü');
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -56,6 +66,20 @@ const AuthAPI = {
 
     getProfile: async () => {
         return apiRequest('/auth/profile');
+    },
+
+    updateProfile: async (profileData) => {
+        return apiRequest('/auth/profile', {
+            method: 'PUT',
+            body: JSON.stringify(profileData)
+        });
+    },
+
+    updateAvatar: async (formData) => {
+        return apiRequest('/auth/avatar', {
+            method: 'PUT',
+            body: formData // FormData, Content-Type otomatik ayarlanacak
+        });
     }
 };
 

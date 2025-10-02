@@ -217,4 +217,84 @@ async function getUserSubmissions(req, res) {
     }
 }
 
-module.exports = { register, login, getProfile, getUserChallenges, getUserSubmissions };
+// Profil güncelleme (bio, full_name)
+async function updateProfile(req, res) {
+    const { full_name, bio } = req.body;
+
+    try {
+        // Validasyon
+        if (full_name && full_name.length > 100) {
+            return res.status(400).json({ error: 'İsim en fazla 100 karakter olabilir' });
+        }
+
+        if (bio && bio.length > 500) {
+            return res.status(400).json({ error: 'Bio en fazla 500 karakter olabilir' });
+        }
+
+        // Profili güncelle
+        await pool.query(
+            `UPDATE users SET full_name = ?, bio = ? WHERE id = ?`,
+            [full_name || null, bio || null, req.user.id]
+        );
+
+        // Güncel kullanıcı bilgilerini getir
+        const [users] = await pool.query(
+            `SELECT id, username, email, full_name, avatar_url, bio, points, role, created_at
+             FROM users WHERE id = ?`,
+            [req.user.id]
+        );
+
+        res.json({
+            message: 'Profil güncellendi',
+            user: users[0]
+        });
+
+    } catch (error) {
+        console.error('Profil güncelleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+// Avatar güncelleme
+async function updateAvatar(req, res) {
+    try {
+        // Cloudinary'den gelen URL'i al
+        if (!req.file || !req.file.path) {
+            return res.status(400).json({ error: 'Avatar dosyası gerekli' });
+        }
+
+        const avatarUrl = req.file.path; // Cloudinary URL
+
+        // Avatar'ı güncelle
+        await pool.query(
+            `UPDATE users SET avatar_url = ? WHERE id = ?`,
+            [avatarUrl, req.user.id]
+        );
+
+        // Güncel kullanıcı bilgilerini getir
+        const [users] = await pool.query(
+            `SELECT id, username, email, full_name, avatar_url, bio, points, role, created_at
+             FROM users WHERE id = ?`,
+            [req.user.id]
+        );
+
+        res.json({
+            message: 'Avatar güncellendi',
+            user: users[0]
+        });
+
+    } catch (error) {
+        console.error('Avatar güncelleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+}
+
+module.exports = {
+    register,
+    login,
+    getProfile,
+    getUserChallenges,
+    getUserSubmissions,
+    updateProfile,
+    updateAvatar
+};

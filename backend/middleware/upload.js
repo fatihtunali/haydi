@@ -26,4 +26,23 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-module.exports = upload;
+// Avatar upload için özel yapılandırma (sadece resim, max 5MB)
+const avatarFileFilter = (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Sadece resim dosyaları (jpg, png, gif, webp) yüklenebilir'), false);
+    }
+};
+
+const avatarUpload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+    },
+    fileFilter: avatarFileFilter
+});
+
+module.exports = { upload, avatarUpload };
