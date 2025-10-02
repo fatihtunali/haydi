@@ -90,33 +90,23 @@ function acceptCookies() {
     localStorage.setItem('cookieConsent', 'accepted');
     closeCookieBanner();
 
-    // Google Analytics'i yükle
-    loadGoogleAnalytics();
+    // Google Analytics & Ads config'i aktifleştir
+    enableTracking();
 }
 
-// Google Analytics & Ads'i yükle
-function loadGoogleAnalytics() {
-    if (window.gtag) return; // Zaten yüklenmişse tekrar yükleme
+// Google Analytics & Ads tracking'i aktifleştir
+function enableTracking() {
+    if (typeof gtag === 'function') {
+        // Google Ads Conversion Tracking
+        gtag('config', 'AW-17618942258');
 
-    // Google tag (gtag.js) script'ini ekle
-    var gaScript = document.createElement('script');
-    gaScript.async = true;
-    gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17618942258';
-    document.head.appendChild(gaScript);
+        // Google Analytics
+        gtag('config', 'G-MWJ09WF70N');
 
-    // Analytics & Ads'i başlat
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    window.gtag = gtag;
-    gtag('js', new Date());
-
-    // Google Ads Conversion Tracking
-    gtag('config', 'AW-17618942258');
-
-    // Google Analytics
-    gtag('config', 'G-MWJ09WF70N');
-
-    console.log('✅ Google Analytics & Ads yüklendi');
+        console.log('✅ Google Analytics & Ads tracking aktifleştirildi');
+    } else {
+        console.warn('⚠️ gtag fonksiyonu bulunamadı');
+    }
 }
 
 // Çerezleri reddet

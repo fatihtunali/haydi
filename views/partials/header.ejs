@@ -38,26 +38,35 @@
     <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
 
-    <!-- Google Analytics & Ads Tracking (KVKK Uyumlu - Cookie Consent Sonrası Yüklenir) -->
+    <!-- Google Analytics & Ads Tracking -->
+    <!-- Global Site Tag (gtag.js) - Google Ads: AW-17618942258 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17618942258"></script>
     <script>
-        // Google Analytics & Ads'i sadece cookie onayı verildiyse yükle
-        if (localStorage.getItem('cookieConsent') === 'accepted') {
-            // Google tag (gtag.js) - Global Site Tag
-            var gaScript = document.createElement('script');
-            gaScript.async = true;
-            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17618942258';
-            document.head.appendChild(gaScript);
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
 
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            window.gtag = gtag;
-            gtag('js', new Date());
+        // KVKK Uyumlu: Cookie consent kontrolü
+        const cookieConsent = localStorage.getItem('cookieConsent');
 
-            // Google Ads Conversion Tracking
+        if (cookieConsent === 'accepted') {
+            // Kullanıcı çerezleri kabul etti - tracking aktif
             gtag('config', 'AW-17618942258');
-
-            // Google Analytics
             gtag('config', 'G-MWJ09WF70N');
+        } else if (cookieConsent === 'rejected') {
+            // Kullanıcı çerezleri reddetti - tracking kapalı
+            gtag('config', 'AW-17618942258', {
+                'send_page_view': false,
+                'allow_ad_personalization_signals': false
+            });
+            gtag('config', 'G-MWJ09WF70N', {
+                'send_page_view': false,
+                'allow_ad_personalization_signals': false
+            });
+        } else {
+            // İlk ziyaret - cookie banner gösterilecek, şimdilik sadece tag yükle
+            // Banner'da karar verince config yapılacak
         }
     </script>
 
