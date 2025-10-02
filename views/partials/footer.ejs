@@ -1,55 +1,75 @@
     <!-- Footer -->
-    <footer class="footer" style="background: #2C3E50; color: white; padding: 40px 0; margin-top: 60px;">
+    <footer class="footer" style="background: var(--card-bg); border-top: 1px solid var(--border); padding: 3rem 0; margin-top: 4rem;">
         <div class="container">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 30px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2.5rem; margin-bottom: 2rem;">
                 <!-- Logo & About -->
                 <div>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <img src="/assets/images/logo-icon.svg" alt="Haydi Hep Beraber" style="height: 35px; filter: brightness(0) invert(1);">
-                        <span style="font-weight: bold; font-size: 18px;">Haydi Hep Beraber</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                        <img src="/assets/images/logo-icon.svg" alt="HHB" style="height: 28px;">
+                        <span style="font-weight: 800; font-size: 1.1rem; background: linear-gradient(135deg, #6366f1 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Haydi Hep Beraber</span>
                     </div>
-                    <p style="color: #bdc3c7; line-height: 1.6;">
+                    <p style="color: var(--text-light); line-height: 1.6; font-size: 0.9rem;">
                         Birlikte daha güçlüyüz! Meydan okumalara katıl, takım kur, yarış ve ödüller kazan.
                     </p>
                 </div>
 
                 <!-- Quick Links -->
                 <div>
-                    <h4 style="margin-bottom: 15px; color: #ecf0f1;">Hızlı Linkler</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 10px;"><a href="/" style="color: #bdc3c7; text-decoration: none;">Ana Sayfa</a></li>
-                        <li style="margin-bottom: 10px;"><a href="/challenges" style="color: #bdc3c7; text-decoration: none;">Meydan Okumalar</a></li>
-                        <li style="margin-bottom: 10px;"><a href="/login" style="color: #bdc3c7; text-decoration: none;">Giriş Yap</a></li>
-                        <li style="margin-bottom: 10px;"><a href="/register" style="color: #bdc3c7; text-decoration: none;">Kayıt Ol</a></li>
+                    <h4 style="margin-bottom: 1rem; color: var(--text); font-size: 1rem; font-weight: 700;">Hızlı Linkler</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 0.75rem;">
+                            <a href="/" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">Ana Sayfa</a>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <a href="/challenges" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">Meydan Okumalar</a>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <a href="/leaderboard" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">Liderlik Tablosu</a>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <a href="/login" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">Giriş Yap</a>
+                        </li>
                     </ul>
                 </div>
 
                 <!-- Categories -->
                 <div>
-                    <h4 style="margin-bottom: 15px; color: #ecf0f1;">Kategoriler</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 10px;"><a href="/challenges?category=fitness" style="color: #bdc3c7; text-decoration: none;">💪 Fitness</a></li>
-                        <li style="margin-bottom: 10px;"><a href="/challenges?category=fotograf" style="color: #bdc3c7; text-decoration: none;">📸 Fotoğrafçılık</a></li>
-                        <li style="margin-bottom: 10px;"><a href="/challenges?category=yazilim" style="color: #bdc3c7; text-decoration: none;">💻 Yazılım</a></li>
-                        <li style="margin-bottom: 10px;"><a href="/challenges?category=sanat" style="color: #bdc3c7; text-decoration: none;">🎨 Sanat</a></li>
+                    <h4 style="margin-bottom: 1rem; color: var(--text); font-size: 1rem; font-weight: 700;">Popüler Kategoriler</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 0.75rem;">
+                            <a href="/challenges?category=fitness" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">💪 Fitness</a>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <a href="/challenges?category=fotograf" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">📸 Fotoğrafçılık</a>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <a href="/challenges?category=yazilim" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">💻 Yazılım</a>
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <a href="/challenges?category=sanat" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-light)'">🎨 Sanat</a>
+                        </li>
                     </ul>
                 </div>
 
-                <!-- Social Media -->
+                <!-- Community -->
                 <div>
-                    <h4 style="margin-bottom: 15px; color: #ecf0f1;">Bizi Takip Edin</h4>
-                    <div style="display: flex; gap: 15px;">
-                        <a href="#" style="color: #bdc3c7; font-size: 24px; transition: color 0.3s;" title="Twitter">🐦</a>
-                        <a href="#" style="color: #bdc3c7; font-size: 24px; transition: color 0.3s;" title="Instagram">📷</a>
-                        <a href="#" style="color: #bdc3c7; font-size: 24px; transition: color 0.3s;" title="Facebook">👍</a>
-                        <a href="#" style="color: #bdc3c7; font-size: 24px; transition: color 0.3s;" title="YouTube">▶️</a>
+                    <h4 style="margin-bottom: 1rem; color: var(--text); font-size: 1rem; font-weight: 700;">Topluluk</h4>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <a href="#" style="color: var(--text-light); font-size: 1.5rem; transition: all 0.2s;" onmouseover="this.style.color='var(--primary)'; this.style.transform='scale(1.1)'" onmouseout="this.style.color='var(--text-light)'; this.style.transform='scale(1)'" title="Twitter">🐦</a>
+                        <a href="#" style="color: var(--text-light); font-size: 1.5rem; transition: all 0.2s;" onmouseover="this.style.color='var(--primary)'; this.style.transform='scale(1.1)'" onmouseout="this.style.color='var(--text-light)'; this.style.transform='scale(1)'" title="Instagram">📷</a>
+                        <a href="#" style="color: var(--text-light); font-size: 1.5rem; transition: all 0.2s;" onmouseover="this.style.color='var(--primary)'; this.style.transform='scale(1.1)'" onmouseout="this.style.color='var(--text-light)'; this.style.transform='scale(1)'" title="Discord">💬</a>
                     </div>
+                    <p style="color: var(--text-light); font-size: 0.85rem; margin-top: 1rem;">
+                        📧 <a href="mailto:haydihepberaber@haydihepberaber.com" style="color: var(--text-light); text-decoration: none;">haydihepberaber@haydihepberaber.com</a>
+                    </p>
                 </div>
             </div>
 
             <!-- Copyright -->
-            <div style="border-top: 1px solid #34495e; padding-top: 20px; text-align: center; color: #95a5a6;">
-                <p>&copy; <%= new Date().getFullYear() %> Haydi Hep Beraber. Tüm hakları saklıdır.</p>
+            <div style="border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: center;">
+                <p style="color: var(--text-light); font-size: 0.85rem; margin: 0;">
+                    &copy; <%= new Date().getFullYear() %> Haydi Hep Beraber. Tüm hakları saklıdır. 🚀
+                </p>
             </div>
         </div>
     </footer>
