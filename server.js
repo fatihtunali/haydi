@@ -10,6 +10,7 @@ const authRoutes = require('./backend/routes/auth');
 const challengeRoutes = require('./backend/routes/challenges');
 const submissionRoutes = require('./backend/routes/submissions');
 const adminRoutes = require('./backend/routes/admin');
+const teamRoutes = require('./backend/routes/teams');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -91,6 +92,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/challenges', challengeRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/teams', teamRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
