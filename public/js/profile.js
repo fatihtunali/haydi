@@ -119,11 +119,11 @@ function renderProfile() {
                             <div style="font-size: 24px; font-weight: bold;" id="challengeCount">0</div>
                             <div style="font-size: 13px; opacity: 0.9;">Challenge</div>
                         </div>
-                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px); cursor: pointer;" onclick="alert('Takipçiler listesi yakında!')">
+                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onclick="openFollowersModal()" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
                             <div style="font-size: 24px; font-weight: bold;">${followStats ? followStats.follower_count : 0}</div>
                             <div style="font-size: 13px; opacity: 0.9;">Takipçi</div>
                         </div>
-                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px); cursor: pointer;" onclick="alert('Takip edilenler listesi yakında!')">
+                        <div style="text-align: center; background: rgba(255,255,255,0.2); padding: 1rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onclick="openFollowingModal()" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
                             <div style="font-size: 24px; font-weight: bold;">${followStats ? followStats.following_count : 0}</div>
                             <div style="font-size: 13px; opacity: 0.9;">Takip</div>
                         </div>
@@ -1136,6 +1136,260 @@ async function toggleFollow() {
         button.disabled = false;
         button.style.opacity = '1';
         button.style.cursor = 'pointer';
+    }
+}
+
+// Modal state
+let followModalState = {
+    type: null,
+    userId: null,
+    offset: 0,
+    limit: 50,
+    hasMore: true,
+    isLoading: false,
+    searchQuery: ''
+};
+
+// Takipçiler modalını aç
+async function openFollowersModal() {
+    const userId = viewingUserId || currentUser.id;
+    followModalState = { type: 'followers', userId, offset: 0, limit: 50, hasMore: true, isLoading: false, searchQuery: '' };
+
+    const modal = createFollowModal('Takipçiler', userId, 'followers');
+    document.body.appendChild(modal);
+
+    await loadFollowList(userId, 'followers', true);
+    setupInfiniteScroll('followers');
+}
+
+// Takip edilenler modalını aç
+async function openFollowingModal() {
+    const userId = viewingUserId || currentUser.id;
+    followModalState = { type: 'following', userId, offset: 0, limit: 50, hasMore: true, isLoading: false, searchQuery: '' };
+
+    const modal = createFollowModal('Takip Edilenler', userId, 'following');
+    document.body.appendChild(modal);
+
+    await loadFollowList(userId, 'following', true);
+    setupInfiniteScroll('following');
+}
+
+// Modal oluştur
+function createFollowModal(title, userId, type) {
+    const modal = document.createElement('div');
+    modal.id = `${type}-modal`;
+    modal.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s;" onclick="closeFollowModal('${type}')">
+            <div style="background: var(--card-bg); border-radius: 16px; width: 90%; max-width: 500px; max-height: 80vh; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3); display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+                <!-- Header -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 2px solid var(--border);">
+                    <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">${title}</h3>
+                    <button onclick="closeFollowModal('${type}')" style="background: none; border: none; font-size: 1.75rem; cursor: pointer; color: var(--text-light); padding: 0; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-light)'">×</button>
+                </div>
+
+                <!-- Search Box -->
+                <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);">
+                    <input
+                        type="text"
+                        id="${type}-search"
+                        placeholder="🔍 Ara..."
+                        onkeyup="handleFollowSearch('${type}', this.value)"
+                        style="width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='var(--primary)'"
+                        onblur="this.style.borderColor='var(--border)'"
+                    >
+                </div>
+
+                <!-- List Container -->
+                <div id="${type}-list" style="padding: 1rem; flex: 1; overflow-y: auto;">
+                    <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                        <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+                        <p>Yükleniyor...</p>
+                    </div>
+                </div>
+
+                <!-- Loading indicator for infinite scroll -->
+                <div id="${type}-loading" style="display: none; text-align: center; padding: 1rem; color: var(--text-light);">
+                    <div class="loading-spinner" style="margin: 0 auto;"></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    return modal;
+}
+
+// Modalı kapat
+function closeFollowModal(type) {
+    const modal = document.getElementById(`${type}-modal`);
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Takip listesini yükle
+async function loadFollowList(userId, type, clear = false) {
+    const listContainer = document.getElementById(`${type}-list`);
+    const loadingIndicator = document.getElementById(`${type}-loading`);
+
+    if (followModalState.isLoading || (!clear && !followModalState.hasMore)) return;
+
+    followModalState.isLoading = true;
+
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'block';
+    }
+
+    try {
+        const params = {
+            limit: followModalState.limit,
+            offset: clear ? 0 : followModalState.offset
+        };
+
+        if (followModalState.searchQuery) {
+            params.search = followModalState.searchQuery;
+        }
+
+        const data = type === 'followers'
+            ? await FollowAPI.getFollowers(userId, params)
+            : await FollowAPI.getFollowing(userId, params);
+
+        const users = data[type] || [];
+
+        // Update state
+        if (clear) {
+            followModalState.offset = users.length;
+        } else {
+            followModalState.offset += users.length;
+        }
+        followModalState.hasMore = users.length === followModalState.limit;
+
+        if (clear || followModalState.offset === users.length) {
+            if (users.length === 0) {
+                listContainer.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-light);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">${followModalState.searchQuery ? '🔍' : (type === 'followers' ? '👥' : '👤')}</div>
+                        <p>${followModalState.searchQuery ? 'Sonuç bulunamadı' : (type === 'followers' ? 'Henüz takipçi yok' : 'Henüz kimseyi takip etmiyor')}</p>
+                    </div>
+                `;
+                return;
+            }
+            listContainer.innerHTML = '';
+        }
+
+        // Render users
+        users.forEach(u => {
+            const userEl = document.createElement('div');
+            userEl.style.cssText = 'display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-radius: 12px; transition: background 0.2s; margin-bottom: 0.5rem;';
+            userEl.onmouseover = () => userEl.style.background = 'var(--bg)';
+            userEl.onmouseout = () => userEl.style.background = 'transparent';
+
+            userEl.innerHTML = `
+                <a href="/profile/${u.id}" style="display: flex; align-items: center; gap: 1rem; flex: 1; text-decoration: none; color: inherit;">
+                    ${u.avatar_url
+                        ? `<img src="${u.avatar_url}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">`
+                        : `<div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.25rem;">${u.username.charAt(0).toUpperCase()}</div>`
+                    }
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${u.full_name || u.username}</div>
+                        <div style="color: var(--text-light); font-size: 0.85rem;">@${u.username}</div>
+                    </div>
+                </a>
+                ${u.id !== getCurrentUserId() && isLoggedIn() ? `
+                    <button
+                        id="follow-btn-${u.id}"
+                        onclick="toggleFollowInModal(${u.id}, ${u.is_following})"
+                        style="padding: 0.5rem 1.25rem; background: ${u.is_following ? 'transparent' : 'var(--primary)'}; border: ${u.is_following ? '1px solid var(--primary)' : 'none'}; border-radius: 8px; color: ${u.is_following ? 'var(--primary)' : 'white'}; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                        ${u.is_following ? 'Takip Ediliyor' : 'Takip Et'}
+                    </button>
+                ` : ''}
+            `;
+
+            listContainer.appendChild(userEl);
+        });
+
+    } catch (error) {
+        console.error('Takip listesi yükleme hatası:', error);
+        if (clear) {
+            listContainer.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                    <p>❌ Liste yüklenirken hata oluştu</p>
+                </div>
+            `;
+        }
+    } finally {
+        followModalState.isLoading = false;
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+}
+
+// Arama handler
+let searchTimeout;
+function handleFollowSearch(type, query) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+        followModalState.searchQuery = query.trim();
+        followModalState.offset = 0;
+        followModalState.hasMore = true;
+        await loadFollowList(followModalState.userId, type, true);
+    }, 300); // 300ms debounce
+}
+
+// Infinite scroll setup
+function setupInfiniteScroll(type) {
+    const listContainer = document.getElementById(`${type}-list`);
+    if (!listContainer) return;
+
+    listContainer.addEventListener('scroll', async () => {
+        const { scrollTop, scrollHeight, clientHeight } = listContainer;
+        const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+
+        // Load more when 80% scrolled
+        if (scrollPercentage > 0.8 && followModalState.hasMore && !followModalState.isLoading) {
+            await loadFollowList(followModalState.userId, type, false);
+        }
+    });
+}
+
+// Modal içinde takip et/bırak
+async function toggleFollowInModal(userId, isFollowing) {
+    const button = document.getElementById(`follow-btn-${userId}`);
+    if (!button) return;
+
+    try {
+        button.disabled = true;
+        button.style.opacity = '0.6';
+
+        if (isFollowing) {
+            await FollowAPI.unfollow(userId);
+            button.textContent = 'Takip Et';
+            button.style.background = 'var(--primary)';
+            button.style.border = 'none';
+            button.style.color = 'white';
+            button.onclick = () => toggleFollowInModal(userId, false);
+        } else {
+            await FollowAPI.follow(userId);
+            button.textContent = 'Takip Ediliyor';
+            button.style.background = 'transparent';
+            button.style.border = '1px solid var(--primary)';
+            button.style.color = 'var(--primary)';
+            button.onclick = () => toggleFollowInModal(userId, true);
+        }
+
+        button.disabled = false;
+        button.style.opacity = '1';
+
+        // Stats'ı güncelle
+        await loadFollowStats();
+        renderProfile();
+
+    } catch (error) {
+        console.error('Takip işlemi hatası:', error);
+        alert('Bir hata oluştu');
+        button.disabled = false;
+        button.style.opacity = '1';
     }
 }
 

@@ -81,10 +81,10 @@ async function unfollowUser(req, res) {
 // Takipçi listesi
 async function getFollowers(req, res) {
     const { id } = req.params;
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, search = '' } = req.query;
 
     try {
-        const [followers] = await pool.query(`
+        let query = `
             SELECT
                 u.id,
                 u.username,
@@ -95,9 +95,25 @@ async function getFollowers(req, res) {
             FROM follows f
             JOIN users u ON f.follower_id = u.id
             WHERE f.following_id = ?
+        `;
+
+        const params = [id];
+
+        // Add search filter
+        if (search.trim()) {
+            query += ` AND (u.username LIKE ? OR u.full_name LIKE ?)`;
+            const searchPattern = `%${search.trim()}%`;
+            params.push(searchPattern, searchPattern);
+        }
+
+        query += `
             ORDER BY f.created_at DESC
             LIMIT ? OFFSET ?
-        `, [id, parseInt(limit), parseInt(offset)]);
+        `;
+
+        params.push(parseInt(limit), parseInt(offset));
+
+        const [followers] = await pool.query(query, params);
 
         // Toplam sayı
         const [[{ total }]] = await pool.query(
@@ -131,10 +147,10 @@ async function getFollowers(req, res) {
 // Takip edilen listesi
 async function getFollowing(req, res) {
     const { id } = req.params;
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, search = '' } = req.query;
 
     try {
-        const [following] = await pool.query(`
+        let query = `
             SELECT
                 u.id,
                 u.username,
@@ -145,9 +161,25 @@ async function getFollowing(req, res) {
             FROM follows f
             JOIN users u ON f.following_id = u.id
             WHERE f.follower_id = ?
+        `;
+
+        const params = [id];
+
+        // Add search filter
+        if (search.trim()) {
+            query += ` AND (u.username LIKE ? OR u.full_name LIKE ?)`;
+            const searchPattern = `%${search.trim()}%`;
+            params.push(searchPattern, searchPattern);
+        }
+
+        query += `
             ORDER BY f.created_at DESC
             LIMIT ? OFFSET ?
-        `, [id, parseInt(limit), parseInt(offset)]);
+        `;
+
+        params.push(parseInt(limit), parseInt(offset));
+
+        const [following] = await pool.query(query, params);
 
         // Toplam sayı
         const [[{ total }]] = await pool.query(
