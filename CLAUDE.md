@@ -204,3 +204,4 @@ For production environment, use `.env.production` with production database crede
 - add to memory
 - add
 - add to memory
+- add to memory all changes

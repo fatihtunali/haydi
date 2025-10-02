@@ -34,6 +34,37 @@
 
     <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Dark Mode Script -->
+    <script>
+        // Initialize theme on page load
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            }
+        }
+
+        // Update icon on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            updateThemeIcon(currentTheme);
+        });
+    </script>
 </head>
 <body<% if (typeof challengeId !== 'undefined') { %> data-challenge-id="<%= challengeId %>"<% } %>>
     <!-- Header -->
@@ -42,7 +73,7 @@
             <div class="header-content" style="display: flex; align-items: center; gap: 1.5rem;">
                 <!-- Logo + Branding -->
                 <a href="/" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; cursor: pointer;">
-                    <img src="/assets/images/logo-icon.svg" alt="HHB" style="height: 28px;">
+                    <img src="/assets/images/logo-icon.svg" alt="HHB" style="height: 24px; width: 24px;">
                     <span style="font-size: 1rem; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.3px; white-space: nowrap;">Haydi Hep Beraber</span>
                 </a>
 
@@ -51,6 +82,11 @@
                     <a href="/challenges" style="padding: 0.4rem 0.8rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.85rem; color: <%= activePage === 'challenges' ? 'var(--primary)' : 'var(--text-light)' %>; background: <%= activePage === 'challenges' ? 'rgba(99, 102, 241, 0.1)' : 'transparent' %>; transition: all 0.2s; white-space: nowrap;" onmouseover="if(this.style.background === 'transparent') this.style.background='rgba(0,0,0,0.03)';" onmouseout="if('<%= activePage %>' !== 'challenges') this.style.background='transparent';">Meydan Okumalar</a>
                     <a href="/leaderboard" style="padding: 0.4rem 0.8rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.85rem; color: <%= activePage === 'leaderboard' ? 'var(--primary)' : 'var(--text-light)' %>; background: <%= activePage === 'leaderboard' ? 'rgba(99, 102, 241, 0.1)' : 'transparent' %>; transition: all 0.2s; white-space: nowrap;" onmouseover="if(this.style.background === 'transparent') this.style.background='rgba(0,0,0,0.03)';" onmouseout="if('<%= activePage %>' !== 'leaderboard') this.style.background='transparent';">Liderlik</a>
                 </nav>
+
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggle" onclick="toggleTheme()" style="padding: 0.35rem 0.5rem; background: none; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; color: var(--text);" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border)';" title="Tema Değiştir">
+                    <span id="themeIcon" style="font-size: 1.1rem; line-height: 1;">🌙</span>
+                </button>
 
                 <!-- Auth Buttons -->
                 <div id="authButtons" style="display: flex; gap: 0.4rem; align-items: center;"></div>

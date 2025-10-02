@@ -215,7 +215,7 @@ async function getUserRank(req, res) {
 
         if (period === 'weekly') {
             query = `
-                SELECT COUNT(*) + 1 as rank
+                SELECT COUNT(*) + 1 as \`rank\`
                 FROM (
                     SELECT u.id, COALESCE(SUM(s.points_awarded), 0) as points
                     FROM users u
@@ -234,7 +234,7 @@ async function getUserRank(req, res) {
             `;
         } else if (period === 'monthly') {
             query = `
-                SELECT COUNT(*) + 1 as rank
+                SELECT COUNT(*) + 1 as \`rank\`
                 FROM (
                     SELECT u.id, COALESCE(SUM(s.points_awarded), 0) as points
                     FROM users u
@@ -253,7 +253,7 @@ async function getUserRank(req, res) {
             `;
         } else {
             query = `
-                SELECT COUNT(*) + 1 as rank
+                SELECT COUNT(*) + 1 as \`rank\`
                 FROM users
                 WHERE points > (SELECT points FROM users WHERE id = ?)
             `;

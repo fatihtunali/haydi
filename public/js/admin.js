@@ -1,11 +1,12 @@
 // Admin Panel
-let activeTab = 'dashboard'; // dashboard, submissions, users, challenges
+let activeTab = 'dashboard'; // dashboard, submissions, users, challenges, emails
 let submissionsFilter = ''; // '', 'beklemede', 'onaylandi', 'reddedildi'
 let dashboardData = null;
 let submissionsData = [];
 let usersData = [];
 let challengesData = [];
 let categoriesData = [];
+let emailLogsData = [];
 
 async function loadAdminPanel() {
     const adminContent = document.getElementById('adminContent');
@@ -87,6 +88,9 @@ function renderAdminPanel() {
             <button onclick="switchAdminTab('challenges')" class="btn ${activeTab === 'challenges' ? 'btn-primary' : 'btn-secondary'}">
                 🎯 Meydan Okumalar
             </button>
+            <button onclick="switchAdminTab('emails')" class="btn ${activeTab === 'emails' ? 'btn-primary' : 'btn-secondary'}">
+                📧 Email Logları
+            </button>
         </div>
 
         <!-- Tab Content -->
@@ -107,6 +111,8 @@ async function switchAdminTab(tab) {
         await loadUsers();
     } else if (tab === 'challenges' && challengesData.length === 0) {
         await loadChallenges();
+    } else if (tab === 'emails') {
+        await loadEmailLogs();
     }
 
     renderAdminPanel();
@@ -128,6 +134,9 @@ function renderAdminTabContent() {
             break;
         case 'challenges':
             tabContent.innerHTML = renderChallenges();
+            break;
+        case 'emails':
+            tabContent.innerHTML = renderEmailLogs();
             break;
     }
 }
@@ -888,6 +897,202 @@ async function deleteChallengeAdmin(id, title, participantCount) {
 
     } catch (error) {
         showError(error.message);
+    }
+}
+
+// ===== EMAIL LOGS =====
+
+// Email loglarını yükle
+async function loadEmailLogs(status = '', type = '') {
+    const response = await fetch(`/api/email/logs?limit=100&status=${status}&type=${type}`, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Email logları yüklenemedi');
+    }
+
+    const data = await response.json();
+    emailLogsData = data;
+}
+
+// Email loglarını render et
+function renderEmailLogs() {
+    const { logs, stats } = emailLogsData;
+
+    return `
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <!-- Stats Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div class="stat-card" style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #10b981;">
+                    <div style="font-size: 2rem; font-weight: 800; color: #10b981;">${stats.total_emails || 0}</div>
+                    <div style="color: var(--text-light); margin-top: 0.5rem;">📧 Toplam Email</div>
+                </div>
+                <div class="stat-card" style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #10b981;">
+                    <div style="font-size: 2rem; font-weight: 800; color: #10b981;">${stats.successful || 0}</div>
+                    <div style="color: var(--text-light); margin-top: 0.5rem;">✅ Başarılı</div>
+                </div>
+                <div class="stat-card" style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #ef4444;">
+                    <div style="font-size: 2rem; font-weight: 800; color: #ef4444;">${stats.failed || 0}</div>
+                    <div style="color: var(--text-light); margin-top: 0.5rem;">❌ Başarısız</div>
+                </div>
+                <div class="stat-card" style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #6366f1;">
+                    <div style="font-size: 2rem; font-weight: 800; color: #6366f1;">${stats.challenge_reminders || 0}</div>
+                    <div style="color: var(--text-light); margin-top: 0.5rem;">🎯 Challenge Hatırlatma</div>
+                </div>
+                <div class="stat-card" style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #6366f1;">
+                    <div style="font-size: 2rem; font-weight: 800; color: #6366f1;">${stats.weekly_summaries || 0}</div>
+                    <div style="color: var(--text-light); margin-top: 0.5rem;">📊 Haftalık Özet</div>
+                </div>
+                <div class="stat-card" style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                    <div style="font-size: 2rem; font-weight: 800; color: #f59e0b;">${stats.test_emails || 0}</div>
+                    <div style="color: var(--text-light); margin-top: 0.5rem;">🧪 Test</div>
+                </div>
+            </div>
+
+            <!-- Test Butonları -->
+            <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px;">
+                <h3 style="margin-bottom: 1rem;">📬 Email Test</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button onclick="sendTestEmail()" class="btn btn-primary">
+                        🧪 Test Email Gönder
+                    </button>
+                    <button onclick="sendTestWeeklySummary()" class="btn btn-secondary">
+                        📊 Haftalık Özet Test
+                    </button>
+                </div>
+            </div>
+
+            <!-- Email Logs Tablosu -->
+            <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px;">
+                <h3 style="margin-bottom: 1rem;">📋 Email Logları</h3>
+
+                ${logs.length === 0 ? `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>Henüz email gönderilmemiş</p>
+                    </div>
+                ` : `
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border);">
+                                    <th style="padding: 0.75rem; text-align: left;">Tarih</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Kime</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Konu</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Tip</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${logs.map(log => `
+                                    <tr style="border-bottom: 1px solid var(--border);">
+                                        <td style="padding: 0.75rem;">
+                                            ${new Date(log.created_at).toLocaleString('tr-TR')}
+                                        </td>
+                                        <td style="padding: 0.75rem;">
+                                            ${log.username ? `
+                                                <div>${log.full_name || log.username}</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-light);">${log.email}</div>
+                                            ` : log.email}
+                                        </td>
+                                        <td style="padding: 0.75rem;">
+                                            ${log.subject}
+                                            ${log.error_message ? `
+                                                <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">
+                                                    ${log.error_message}
+                                                </div>
+                                            ` : ''}
+                                        </td>
+                                        <td style="padding: 0.75rem;">
+                                            <span style="padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.85rem; background: ${
+                                                log.type === 'challenge_reminder' ? 'rgba(99, 102, 241, 0.1)' :
+                                                log.type === 'weekly_summary' ? 'rgba(16, 185, 129, 0.1)' :
+                                                log.type === 'test' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(107, 114, 128, 0.1)'
+                                            }; color: ${
+                                                log.type === 'challenge_reminder' ? '#6366f1' :
+                                                log.type === 'weekly_summary' ? '#10b981' :
+                                                log.type === 'test' ? '#f59e0b' : '#6b7280'
+                                            };">
+                                                ${log.type === 'challenge_reminder' ? '🎯 Hatırlatma' :
+                                                  log.type === 'weekly_summary' ? '📊 Özet' :
+                                                  log.type === 'test' ? '🧪 Test' : log.type}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 0.75rem;">
+                                            <span style="padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.85rem; background: ${
+                                                log.status === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+                                            }; color: ${
+                                                log.status === 'success' ? '#10b981' : '#ef4444'
+                                            };">
+                                                ${log.status === 'success' ? '✅ Başarılı' : '❌ Başarısız'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `}
+            </div>
+        </div>
+    `;
+}
+
+// Test email gönder
+async function sendTestEmail() {
+    const email = prompt('🎯 ALICI EMAİL ADRESİ:\n\nTest emailini almak istediğiniz kişinin email adresini girin.\n(Örn: info@funnytourism.com, ahmet@gmail.com)\n\nNot: Bu adrese test emaili gönderilecektir.');
+    if (!email) return;
+
+    try {
+        const response = await fetch('/api/email/test', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Email gönderilemedi');
+        }
+
+        const data = await response.json();
+        alert(`✅ ${data.message}`);
+        await loadEmailLogs();
+        renderAdminPanel();
+    } catch (error) {
+        alert(`❌ ${error.message}`);
+    }
+}
+
+// Test haftalık özet gönder
+async function sendTestWeeklySummary() {
+    if (!confirm('Haftalık özet emaili kendinize gönderilecek. Devam edilsin mi?')) return;
+
+    try {
+        const response = await fetch('/api/email/test-weekly-summary', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Email gönderilemedi');
+        }
+
+        const data = await response.json();
+        alert(`✅ ${data.message}`);
+        await loadEmailLogs();
+        renderAdminPanel();
+    } catch (error) {
+        alert(`❌ ${error.message}`);
     }
 }
 

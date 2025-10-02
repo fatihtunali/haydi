@@ -4,6 +4,7 @@ const path = require('path');
 require('dotenv').config();
 
 const { testConnection } = require('./backend/config/database');
+const { startEmailSchedulers } = require('./backend/services/emailScheduler');
 
 // Routes
 const authRoutes = require('./backend/routes/auth');
@@ -15,6 +16,7 @@ const leaderboardRoutes = require('./backend/routes/leaderboard');
 const notificationRoutes = require('./backend/routes/notifications');
 const badgeRoutes = require('./backend/routes/badges');
 const followRoutes = require('./backend/routes/follows');
+const emailRoutes = require('./backend/routes/email');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -117,6 +119,7 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/badges', badgeRoutes);
 app.use('/api/follows', followRoutes);
+app.use('/api/email', emailRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -157,6 +160,9 @@ async function startServer() {
         console.error('Veritabanı bağlantısı kurulamadı. Sunucu başlatılamıyor.');
         process.exit(1);
     }
+
+    // Email scheduler'ları başlat
+    startEmailSchedulers();
 
     app.listen(PORT, () => {
         console.log('');
